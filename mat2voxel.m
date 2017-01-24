@@ -14,7 +14,7 @@ for i=3:length(folderNames)
         vertices = vertices - repmat(mean(vertices,1),size(vertices,1),1);
         FV.faces = faces;
         FV.vertices = vertices;
-        Volume=polygon2voxel(FV,[100 100 100],'auto');
+        Volume=polygon2voxel(FV,[64 64 64],'auto');
         [pathstr,name, ext] = fileparts(char(filenames(j)));
         save(['ModelNet40Voxel','/',char(folderNames(i)),'/train','/',name,'.mat'],'Volume');
     end

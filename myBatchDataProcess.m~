@@ -1,0 +1,26 @@
+function [ output ] = myBatchDataProcess()
+%MYBATCHDATAPROCESS Summary of this function goes here
+%   Preprocess the data for batch sampling operation;
+
+%   The max number of voxels in a class is 891;
+%     fileFolder = fullfile(param.data_path);
+%     dirFolder = dir(fileFolder);
+%     dirtmp = {dirFolder.name}';
+%     
+%     maxnum=0;
+%     for i=3:length(dirtmp)
+%         tmp.data_path=[param.data_path '/' char(dirtmp(i)) '/train'];
+%         tmp.dirFolder=dir(fullfile(tmp.data_path,'*'));
+%         tmp.filenum=length({tmp.dirFolder.name}');
+%         fprintf('Number of class %s is %d\n',char(dirtmp(i)),tmp.filenum);
+%         if tmp.filenum>maxnum
+%             maxnum=tmp.filenum;
+%         end
+%     end
+%     
+%     output = maxnum;
+
+    param.data_path = './ModelNet40Voxel';
+
+end
+
