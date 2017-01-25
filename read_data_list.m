@@ -37,7 +37,7 @@ for c = 1 : num_classes
         
         cat_ind = cat_ind + 1;
         data_list{c}(cat_ind,1).filename = filename;
-        data_list{c}(cat_ind,1).label = c;
+        data_list{c}(cat_ind,1).label = 1;
         if cat_ind == maxNum
           break;
         end

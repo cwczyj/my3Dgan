@@ -1,0 +1,84 @@
+function [ y ] = myGenerator( net, x ,forward_or_backward)
+%MYGENERATOR Summary of this function goes here
+%   The network of Generator in GAN
+%   The parameter net is the structure of the Generator network;
+%   and x is the batch of input of the network (200x100)
+%   for ff; and x is the batch of loss of the network (64x64x64)for bp;
+%   y is the output of the network(a [64 64 64] voxel)
+
+    if strcmp(forward_or_backward,'forward')
+    %% for Generator ff
+        batch_size = size(x,2);
+        net.layers{1}.input{1} = x;
+        net.layers{2}.layerSize = 4;
+        
+        for i = 1:(numel(net.layers)-1)
+
+            if strcmp(net.layers{i}.type,'fullconnect')
+                for j=1:net.layers{i}.outputMaps
+                    net.layers(i+1).input{j}=zeros(net.layers{i}.kernels,net.layers{i}.kernels,...
+                    net.layers{i}.kernels,net.layers{i}.outputMaps);
+                    z=net.layers{i}.w(:,:,j)*x;
+                    net.layers{i}.ReLUin{j} = reshape(z,net.layers{i}.kernels,net.layers{i}.kernels,...
+                        net.layers{i}.kernels,batch_size);
+                    
+                    net.layers{i}.ReLUout{j} = myReLU(net.layers{i}.ReLUin{j}, 'forward', 0);
+                    net.layers{i+1}.input{j} = my3DBatchNormalization...
+                        (net.layers{i}.ReLUout{j}, net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1), 'forward',0);
+                end
+            elseif strcmp(net.layers{i}.type,'convolution')
+                for j=1:net.layers{i}.outputMaps
+                    net.layers{i+1}.layerSize=(net.layers{i}.layerSize-1)*(net.layers{i}.stride-1)+...
+                        net.layers{i}.layerSize+net.layers{i}.kernels-1-2;
+                    
+                    net.layers{i}.ReLUin{j}=zeros(net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,...
+                        batch_size);
+                    for k=1:batch_size
+                        z=zeros(net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,net.layers{i+1}.layerSize);
+                        for l=1:numel(net.layers{i}.input)
+                            z=z+my3dConv(net.layers{i}.input{l}(:,:,:,k),net.layers{i}.w(:,:,:,l,j),...
+                                net.layers{i}.stride,1,'T');
+                        end
+                        net.layers{i}.ReLUin{j}(:,:,:,k)=z;
+                    end
+                    
+                    if strcmp(net.layers{i}.actFun,'ReLU')
+                        net.layers{i}.ReLUout{j} = myReLU(net.layers{i}.ReLUin{j},'forward',0);
+                    elseif strcmp(net.layers{i}.actFun,'sigmoid')
+                        net.layers{i}.ReLUout{j} = mySigmoidFun(net.layers{i}.ReLUin{j},'forward',0);
+                    end
+                    
+                    net.layers{i+1}.input{j} = my3DBatchNormalization...
+                        (net.layers{i}.ReLUout{j}, net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1),'forward',0);
+                end
+            end
+        end
+    elseif strcmp(forward_or_backward,'backward')
+        %% for Generator bp
+        
+        batch_size=size(x,4);
+        for i=(numel(net.layers)-1):-1:1
+            if strcmp(net.layers{i}.type,'fullconnect')
+                
+            elseif strcmp(net.layers{i}.type,'convolution')
+                for j=net.layers{i}.outputMaps
+                    [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
+                        my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
+                        net.layers{i}.beta(j,1),'backward',x);
+                    
+                    if strcmp(net.layers{i}.actFun,'ReLU')
+                        net.layers{i}.dReLU = myReLU(net.layers{i}.dBN,'backward',0);
+                    elseif strcmp(net.layers{i}.actFun,'sigmoid')
+                        net.layers{i}.dReLU = mySigmoidFun(net.layers{i}.dBN,'backward',0);
+                    end
+                    
+                    for k=1:batch_size
+                        
+                    end
+                end
+            end
+        end
+    end
+
+end
+

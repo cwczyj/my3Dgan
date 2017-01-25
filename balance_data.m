@@ -25,7 +25,7 @@ numTotal = maxNumPerClass * numClass;
 new_list = repmat(struct('filename', '', 'label', 0), numTotal, 1);
 label = zeros(numTotal,1);
 for c = 1 : numClass
-    label(maxNumPerClass*(c-1)+1:maxNumPerClass*c) = c;
+    label(maxNumPerClass*(c-1)+1:maxNumPerClass*c) = 1;
     if numPerClass(c) >= maxNumPerClass
         new_list(maxNumPerClass*(c-1)+1 : maxNumPerClass*c) = data_list{c}(1 : maxNumPerClass);
     else
