@@ -64,31 +64,62 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
         net.layers{6}.dinput{1}=x;
         for i=(numel(net.layers)-1):-1:1
             if strcmp(net.layers{i}.type,'fullconnect')
-                
+                for j=1:net.layers{i}.outputMaps
+                    [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
+                            my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
+                            net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
+                    net.layers{i}.dReLU{j} = myReLU(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});
+                    
+                    tmp = reshape(net.layers{i}.dReLU{j},net.layers.kernels^3,size(net.layers{i}.dReLU{j},4));
+                    for k=1:numel(net.layers(i).input)
+                        net.layes{i}.w(:,:,j)=tmp*net.layers{i}.input{k}';
+                    end
+                end
             elseif strcmp(net.layers{i}.type,'convolution')
                 z=zeros(net.layers{i}.layerSize,net.layers{i}.layerSize,net.layers{i}.layerSize,...
-                    numel(net.layers{i}.input));
-                for j=net.layers{i}.outputMaps
+                    numel(net.layers{i}.input),batch_size);
+                for j=1:net.layers{i}.outputMaps
                     [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
                         my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
                         net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
                     
                     if strcmp(net.layers{i}.actFun,'ReLU')
-                        net.layers{i}.dReLU{j} = myReLU(net.layers{i}.dBN{j},'backward',0);
+                        net.layers{i}.dReLU{j} = myReLU(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});
                     elseif strcmp(net.layers{i}.actFun,'sigmoid')
-                        net.layers{i}.dReLU{j} = mySigmoidFun(net.layers{i}.dBN{j},'backward',0);
+                        net.layers{i}.dReLU{j} = mySigmoidFun(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});
                     end
                     
                     for k=1:batch_size
                         for l=1:numel(net.layers{i}.input)
-                            z(:,:,:,l) = z(:,:,:,l) + my3dConv(net.layers{i}.dReLU{l}(:,:,:,k),net.layers{i}.w(:,:,:,l,j),net.layers{i}.stride,1,'C');
+                            z(:,:,:,l,k) = z(:,:,:,l,k) + my3dConv(net.layers{i}.dReLU{l}(:,:,:,k),net.layers{i}.w(:,:,:,l,j),net.layers{i}.stride,1,'C');
                         end
                     end
                 end
+                
+                for j=1:numel(net.layers{i}.input)
+                    net.layers{i}.dinput{j}=z(:,:,:,j,:);
+                end
+                
+                for j=1:net.layers{i}.outputMaps
+                    for l=1:numel(net.layers{i}.input)
+                        for k = 1:batch_size
+                            net.layers{i}.dw(:,:,:,l,j)=net.layers{i}.dw(:,:,:,l,j)+...
+                                my3dConv(net.layers{i}.input{l}(:,:,:,k),net.layers{i}.dinput{l}(:,:,:,k),net.layers{i}.stride,1,'C');
+                        end
+                        
+                        net.layers{i}.dw=net.layers{i}.dw/batch_size;
+                    end
+                end                
             end
         end
         
-        % calc gradient for every weigths by using adam algorithm.
+        epsoide = 1e-8;
+        beta1=0.9;
+        beta2=0.999;
+        %calc gradient for every weigths by using adam algorithm.
+        for i=1:(numel(net.layers)-1)
+        end
+        
     end
 
 end

@@ -13,7 +13,7 @@ function [ net ] = myNetSetup( net )
             %15 article for ReLU networks 
             %(Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification)
             net.layers{i}.w=normrnd(0,Guass_std,[net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
-            net.layers{i}.dw=normrnd([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
+            net.layers{i}.dw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
         elseif strcmp(net.layers{i}.type,'convolution')
             net.layers{i}.w=normrnd(0,Guass_std,[net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
                 fan_in, fan_out]);
