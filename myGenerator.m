@@ -18,8 +18,6 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
             if strcmp(net.layers{i}.type,'fullconnect')
                 for j=1:net.layers{i}.outputMaps
                     z=zeros([net.layers{i}.kernels^3,batch_size]);
-                    net.layers(i+1).input{j}=zeros(net.layers{i}.kernels,net.layers{i}.kernels,...
-                    net.layers{i}.kernels,net.layers{i}.outputMaps);
                     for k=1:numel(net.layers{i}.input)
                         z=z+net.layers{i}.w(:,:,j)*net.layers{i}.input{k};
                     end
@@ -30,6 +28,8 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                     net.layers{i+1}.input{j} = my3DBatchNormalization...
                         (net.layers{i}.ReLUout{j}, net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1), 'forward',0);
                 end
+                
+                fprintf('finish the %s layers\n',net.layers{i}.type);
             elseif strcmp(net.layers{i}.type,'convolution')
                 net.layers{i+1}.layerSize=(net.layers{i}.layerSize-1)*(net.layers{i}.stride-1)+...
                                            net.layers{i}.layerSize+net.layers{i}.kernels-1-2;
@@ -53,10 +53,14 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                     
                     net.layers{i+1}.input{j} = my3DBatchNormalization...
                         (net.layers{i}.ReLUout{j}, net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1),'forward',0);
+                    
+                    fprintf('finished one convolution layer\n');
                 end
+                
+                fprintf('finished a %s layer\n',net.layers{i}.type);
             end
-        end
-        
+             fprintf('finished the %dth layer\n',i);
+        end      
     elseif strcmp(forward_or_backward,'backward')
         %% for Generator bp
         
@@ -113,11 +117,21 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
             end
         end
         
-        epsoide = 1e-8;
-        beta1=0.9;
-        beta2=0.999;
-        %calc gradient for every weigths by using adam algorithm.
+        momentum = net.momentum;
+        lr = net.lr;
+        BN_lr = net.BNlr;
+        %calc gradient for every weigths by using Nesterov momentum algorithm.
         for i=1:(numel(net.layers)-1)
+            net.layers{i}.histdw = momentum * net.layers{i}.histdw + lr * (model.layers{i}.dw + wd * model.layers{i}.w);
+            model.layers{i}.w = model.layers{i}.w - (model.layers{i}.histdw);
+            
+            for j=1:net.layers{i}.outputMaps
+                net.layers{i}.histdlamda(j,1) = momentum * net.layers{i}.histdlamda(j,1) + BN_lr * (net.layers{i}.dlamda(j,1) + net.layers{i}.lamda(j,1));
+                net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1) - (net.layers{i}.histdlamda(j,1));
+                
+                net.layers{i}.histdbeta(j,1) = momentum * net.layers{i}.histdbeta(j,1) + BN_lr * (net.layers{i}.dbeta(j,1) + net.layers{i}.beta(j,1));
+                net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1) - (net.layers{i}.histdbeta(j,1));
+            end
         end
         
     end

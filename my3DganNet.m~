@@ -6,12 +6,20 @@ generator.layers = {
     struct('type', 'convolution', 'outputMaps', 128, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2);
     struct('type', 'convolution', 'outputMaps', 64, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2);
     struct('type', 'convolution', 'outputMaps', 1, 'kernels', 4,'actFun', 'sigmoid', 'stride', 2);
+    struct('type', 'output');
 };
 generator.batchSize = 100;
+generator.lr = 0.0015;
+generator.momentum = 0.5;
+generator.BNlr = 0.001;
+
+epcohe = 30;
 
 %get batch of data;
-batch_data = 
-
+real_batch_data = myBatchDataProcess(generator.batchSize);
 
 %initial the parameters of the generator network
 generator = myNetSetup(generator);
+
+%read batch data
+

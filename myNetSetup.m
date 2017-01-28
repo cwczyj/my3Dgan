@@ -14,18 +14,24 @@ function [ net ] = myNetSetup( net )
             %(Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification)
             net.layers{i}.w=normrnd(0,Guass_std,[net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
             net.layers{i}.dw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
+            net.layers{i}.histdw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
         elseif strcmp(net.layers{i}.type,'convolution')
             net.layers{i}.w=normrnd(0,Guass_std,[net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
                 fan_in, fan_out]);
             net.layers{i}.dw=zeros([net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
+                fan_in, fan_out]);
+            net.layers{i}.histdw=zeros([net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
                 fan_in, fan_out]);
         end
         %lamda and beta for Batch Normalization layer;
         net.layers{i}.lamda = rand([net.layers{i}.outputMaps,1],'single');
         net.layers{i}.beta = rand([net.layers{i}.outputMaps,1],'single');
         
-        net.layers{i}.dlamda = rand([net.layers{i}.outputMaps,1],'single');
-        net.layers{i}.dbeta = rand([net.layers{i}.outputMaps,1],'single');
+        net.layers{i}.dlamda = zeros([net.layers{i}.outputMaps,1],'single');
+        net.layers{i}.dbeta = zeros([net.layers{i}.outputMaps,1],'single');
+        
+        net.layers{i}.histdlamda = zeros([net.layers{i}.outputMaps,1],'single');
+        net.layers{i}.histdbeta = zeros([net.layers{i}.outputMaps,1],'single');
         
         fan_in = net.layers{i}.outputMaps;
     end
