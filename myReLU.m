@@ -9,7 +9,5 @@ function [ output ] = myReLU( A , forward_or_backward, Loss )
         tmp=(A>0);
         output=Loss.*tmp;
     end
-
-
 end
 
