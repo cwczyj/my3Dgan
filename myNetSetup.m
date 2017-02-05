@@ -2,7 +2,7 @@ function [ net ] = myNetSetup( net )
 %MYNETSETUP Summary of this function goes here
 %   initial the weights of a network
     numlayers = numel(net.layers)-1;
-    fan_in = 1;
+    fan_in = 100;
     
     for i=1:numlayers
         
