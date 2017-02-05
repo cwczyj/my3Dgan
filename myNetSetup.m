@@ -1,8 +1,8 @@
-function [ net ] = myNetSetup( net )
+function [ net ] = myNetSetup( net , fanin)
 %MYNETSETUP Summary of this function goes here
 %   initial the weights of a network
     numlayers = numel(net.layers)-1;
-    fan_in = 100;
+    fan_in = fanin;
     
     for i=1:numlayers
         

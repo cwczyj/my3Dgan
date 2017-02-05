@@ -86,7 +86,7 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                     
                     tmp = reshape(net.layers{i}.dReLU{j},net.layers.kernels^3,size(net.layers{i}.dReLU{j},4));
                     for k=1:numel(net.layers(i).input)
-                        net.layes{i}.w(:,:,j)=tmp*net.layers{i}.input{k}';
+                        net.layes{i}.dw(:,:,j)=tmp*net.layers{i}.input{k}';
                     end
                 end
             elseif strcmp(net.layers{i}.type,'convolution')
@@ -158,6 +158,7 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
         
         fprintf('finished a gradient calculate procedure in generator %s\n',datestr(now,13));
     end
-
+    
+    y=net;
 end
 

@@ -18,7 +18,11 @@ if strcmp(forward_or_backward,'forward')
         if strcmp(net.layers{i}.type,'fullconnect')
             % as if there is no fullconnect layer in the discriminator net.
         elseif strcmp(net.layers{i}.type,'convolution')
-            net.layers{i+1}.layerSize = (net.layers{i}.layerSize-net.layers{i}.kernels+2)/net.layers{i}.stride+1;
+            
+            if i == 5
+                tmp = 0;
+            end
+            net.layers{i+1}.layerSize = (net.layers{i}.layerSize-net.layers{i}.kernels+2*net.layers{i}.padding)/net.layers{i}.stride+1;
             
             for j=1:net.layers{i}.outputMaps
                 net.layers{i}.ReLUin{j}=zeros(net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,...
@@ -26,14 +30,14 @@ if strcmp(forward_or_backward,'forward')
                 for k=1:batch_size
                     z = zeros(net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,net.layers{i+1}.layerSize);
                     for l=1:numel(net.layers{i}.input)
-                        z = z + my3dConv(net.layers{i}.input{l}(:,:,:,k),net.layers{i}.w(:,:,:,l,k),...
+                        z = z + my3dConv(net.layers{i}.input{l}(:,:,:,k),net.layers{i}.w(:,:,:,l,j),...
                             net.layers{i}.stride,net.layers{i}.padding,'C');
                     end
                     
                     net.layers{i}.ReLUin{j}(:,:,:,k)=z;
                 end
                 
-                if strcmp(net.layers{i}.actFun,'ReLU')
+                if strcmp(net.layers{i}.actFun,'LReLU')
                     net.layers{i}.ReLUout{j} = myLeakyReLU(net.layers{i}.ReLUin{j},lReLU_rate,'forward',0);
                 elseif strcmp(net.layers{i}.actFun,'sigmoid')
                     net.layers{i}.ReLUout{j} = mySigmoidFun(net.layers{i}.ReLUin{j},'forward',0);
@@ -46,7 +50,7 @@ if strcmp(forward_or_backward,'forward')
                     net.layers{i+1}.input{j} = net.layers{i}.ReLUout{j};
                 end
                 
-                fprintf('finished on convolution layer in discriminator %s\n',datestr(now,13));
+                fprintf('finished on %dth convolution layer %dth loop in discriminator %s\n',i,j,datestr(now,13));
             end
         end
     end
@@ -70,7 +74,7 @@ elseif strcmp(forward_or_backward,'backward')
                         my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
                         net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
                     
-                 if strcmp(net.layers{i}.actFun,'ReLU')
+                 if strcmp(net.layers{i}.actFun,'LReLU')
                      net.layers{i}.dReLU{j} = myLeakyReLU(net.layers{i}.ReLUin{j},lReLU_rate,'backward',net.layers{i}.dBN{j});
                  elseif strcmp(net.layers{i}.actFun,'sigmoid')
                      net.layers{i}.dReLU{j} = mySigmoidFun(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});
@@ -125,6 +129,6 @@ elseif strcmp(forward_or_backward,'backward')
     
     fprintf('finished a gradient calculate procedure in discriminator %s\n',datestr(now,13));    
 end
-
+    y=net;
 end
 
