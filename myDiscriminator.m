@@ -18,10 +18,6 @@ if strcmp(forward_or_backward,'forward')
         if strcmp(net.layers{i}.type,'fullconnect')
             % as if there is no fullconnect layer in the discriminator net.
         elseif strcmp(net.layers{i}.type,'convolution')
-            
-            if i == 5
-                tmp = 0;
-            end
             net.layers{i+1}.layerSize = (net.layers{i}.layerSize-net.layers{i}.kernels+2*net.layers{i}.padding)/net.layers{i}.stride+1;
             
             for j=1:net.layers{i}.outputMaps
@@ -70,6 +66,7 @@ elseif strcmp(forward_or_backward,'backward')
             
             %compute the dx
             for j=1:net.layers{i}.outputMaps
+                net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
                 [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
                         my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
                         net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
@@ -92,22 +89,27 @@ elseif strcmp(forward_or_backward,'backward')
             for j=1:numel(net.layers{i}.input)
                 net.layers{i}.dinput{j}=z(:,:,:,j,:);
             end
+            fprintf('finished %dth backpropagation layer for dx in discriminator %s\n',i,datestr(now,13));
             
             if strcmp(update,'true')
                 %compute the dw
                 for j=1:net.layers{i}.outputMaps
-                    for l=1:numel(net.layers{i}.input)
+                    % too important to get understand!!!
+                    tmpSizeofInput = (size(net.layers{i+1}.dinput{j},1)-1)*(net.layers{i}.stride-1)+size(net.layers{i+1}.dinput{j},1);
+                    for l=1:numel(net.layers{i}.input)    
                         for k = 1:batch_size
+                            tmpInput = zeros(tmpSizeofInput,tmpSizeofInput,tmpSizeofInput);
+                            tmpInput((1:net.layers{i}.stride:end),(1:net.layers{i}.stride:end),(1:net.layers{i}.stride:end))= net.layers{i+1}.dinput{j}(:,:,:,k);
                             net.layers{i}.dw(:,:,:,l,j)=net.layers{i}.dw(:,:,:,l,j)+...
-                                my3dConv(net.layers{i+1}.dinput{l}(:,:,:,k),net.layers{i}.input{l}(:,:,:,k),net.layers{i}.stride,net.layers{i}.padding,'C');
+                                my3dConv(net.layers{i}.input{l}(:,:,:,k),tmpInput,1,net.layers{i}.padding,'C');
                         end
                         
                         net.layers{i}.dw=net.layers{i}.dw/batch_size;
                     end
+                    fprintf('finished %dth backpropagation layer in %d loop for dw in discriminator %s\n',i,j,datestr(now,13));
                 end
            end
         end
-        fprintf('finished one backpropagation layer in discriminator %s\n',datestr(now,13));
     end
     
     %calc gradient for every weigths by using Nesterov momentum algorithm

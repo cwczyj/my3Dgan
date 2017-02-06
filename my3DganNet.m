@@ -48,6 +48,7 @@ for x=1:epoch
     i=1;
     
     for j = 1:5
+        
         batch_list = shuffle_index((i-1)*generator.batchSize+1:i*generator.batchSize);
         i = i+1;
         batch = myRead_batch(real_batch_data(batch_list));
@@ -66,10 +67,11 @@ for x=1:epoch
         disc_Loss = mean(disc_Loss(:));
         disc_Loss = disc_Loss*ones(10,1);
         
+        disc_Loss = reshape(disc_Loss,1,1,1,10);
         discriminator = myDiscriminator(discriminator,disc_Loss,'backward','true');
     end
     
-    rand_z = rand([200,100],'single');
+    rand_z = rand([200,10],'single');
     generator = myGenerator(generator,rand_z,'forward');
     gen_output_2 = generator.layers{6}.input{1};
     
