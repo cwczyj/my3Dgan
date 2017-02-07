@@ -2,17 +2,18 @@ rng('shuffle');
 
 %The architecture of the generator network;
 generator.layers = {
-    struct('type', 'fullconnect', 'outputMaps', 512, 'kernels', 4, 'actFun', 'ReLU','stride', 1);
-    struct('type', 'convolution', 'outputMaps', 256, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2);
-    struct('type', 'convolution', 'outputMaps', 128, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2);
-    struct('type', 'convolution', 'outputMaps', 64, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2);
-    struct('type', 'convolution', 'outputMaps', 1, 'kernels', 4,'actFun', 'sigmoid', 'stride', 2);
+    struct('type', 'fullconnect', 'outputMaps', 512, 'kernels', 4, 'actFun', 'ReLU','stride', 1,'padding',0);
+    struct('type', 'convolution', 'outputMaps', 256, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2,'padding',1);
+    struct('type', 'convolution', 'outputMaps', 128, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2,'padding',1);
+    struct('type', 'convolution', 'outputMaps', 64, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2,'padding',1);
+    struct('type', 'convolution', 'outputMaps', 1, 'kernels', 4,'actFun', 'sigmoid', 'stride', 2,'padding',1);
     struct('type', 'output');
 };
 generator.batchSize = 10;
 generator.lr = 0.0025;
 generator.momentum = 0.5;
 generator.BNlr = 0.001;
+generator.weight_decay = 1e-5;
 
 %The architecture of the discriminator network;
 discriminator.layers = {
@@ -28,6 +29,7 @@ discriminator.batchSize = 10;
 discriminator.lr = 1e-5;
 discriminator.momentum = 0.9;
 discriminator.BNlr = 0.001;
+discriminator.weight_decay = 1e-5;
 
 epoch = 5;
 
@@ -67,8 +69,7 @@ for x=1:epoch
         disc_Loss = mean(disc_Loss(:));
         disc_Loss = disc_Loss*ones(10,1);
         
-        disc_Loss = reshape(disc_Loss,1,1,1,10);
-        discriminator = myDiscriminator(discriminator,disc_Loss,'backward','true');
+        discriminator = myDiscriminator(discriminator,disc_Loss','backward','true');
     end
     
     rand_z = rand([200,10],'single');

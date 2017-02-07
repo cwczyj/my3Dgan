@@ -58,9 +58,7 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                             (net.layers{i}.ReLUout{j}, net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1),'forward',0);
                     else
                         net.layers{i+1}.input{j}=net.layers{i}.ReLUout{j};
-                    end
-                    
-                    fprintf('finished one convolution layer in generator %s\n',datestr(now,13));
+                    end 
                 end
             end
              fprintf('finished the %dth layer in generator %s\n',i,datestr(now,13));
@@ -96,10 +94,12 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                 %compute dx
                 for j=1:net.layers{i}.outputMaps
                     if i~= 5
+                        net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
                         [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
                             my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
                             net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
                     else
+                        net.layers{i+1}.dinput{j} = reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
                         net.layers{i}.dBN{j} = net.layers{i+1}.dinput{j};
                     end
                     
@@ -123,10 +123,13 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                 
                 %compute dw
                 for j=1:net.layers{i}.outputMaps
+                    tmpSizeofInput = (size(net.layers{i+1}.dinput{j},1)-1)*(net.layers{i}.stride-1)+size(net.layers{i+1}.dinput{j},1);
                     for l=1:numel(net.layers{i}.input)
                         for k = 1:batch_size
+                            tmpInput = zeros(tmpSizeofInput,tmpSizeofInput,tmpSizeofInput);
+                            tmpInput((1:net.layers{i}.stride:end),(1:net.layers{i}.stride:end),(1:net.layers{i}.stride:end))= net.layers{i+1}.dinput{j}(:,:,:,k);
                             net.layers{i}.dw(:,:,:,l,j)=net.layers{i}.dw(:,:,:,l,j)+...
-                                my3dConv(net.layers{i+1}.dinput{l}(:,:,:,k),net.layers{i}.input{l}(:,:,:,k),net.layers{i}.stride,1,'C');
+                                my3dConv(tmpInput,net.layers{i}.input{l}(:,:,:,k),1,net.layers{i}.padding,'C');
                         end
                         
                         net.layers{i}.dw=net.layers{i}.dw/batch_size;
@@ -140,10 +143,11 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
         momentum = net.momentum;
         lr = net.lr;
         BN_lr = net.BNlr;
+        wd = net.weight_decay;
         %calc gradient for every weigths by using Nesterov momentum algorithm.
         for i=1:(numel(net.layers)-1)
-            net.layers{i}.histdw = momentum * net.layers{i}.histdw + lr * (model.layers{i}.dw + wd * model.layers{i}.w);
-            model.layers{i}.w = model.layers{i}.w - (model.layers{i}.histdw);
+            net.layers{i}.histdw = momentum * net.layers{i}.histdw + lr * (net.layers{i}.dw + wd * net.layers{i}.w);
+            net.layers{i}.w = net.layers{i}.w - (net.layers{i}.histdw);
             
             if i ~= 5
                 for j=1:net.layers{i}.outputMaps

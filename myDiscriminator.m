@@ -45,10 +45,9 @@ if strcmp(forward_or_backward,'forward')
                 else
                     net.layers{i+1}.input{j} = net.layers{i}.ReLUout{j};
                 end
-                
-                fprintf('finished on %dth convolution layer %dth loop in discriminator %s\n',i,j,datestr(now,13));
             end
         end
+        fprintf('finished on %dth forward loop in discriminator %s\n',i,datestr(now,13));
     end
     
 elseif strcmp(forward_or_backward,'backward')
@@ -66,10 +65,15 @@ elseif strcmp(forward_or_backward,'backward')
             
             %compute the dx
             for j=1:net.layers{i}.outputMaps
-                net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
-                [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
-                        my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
-                        net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
+                if i ~= 5
+                    net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
+                    [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
+                            my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
+                            net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
+                else
+                    net.layers{i+1}.dinput{j} = reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
+                    net.layers{i}.dBN{j} = net.layers{i+1}.dinput{j};
+                end
                     
                  if strcmp(net.layers{i}.actFun,'LReLU')
                      net.layers{i}.dReLU{j} = myLeakyReLU(net.layers{i}.ReLUin{j},lReLU_rate,'backward',net.layers{i}.dBN{j});
@@ -89,7 +93,8 @@ elseif strcmp(forward_or_backward,'backward')
             for j=1:numel(net.layers{i}.input)
                 net.layers{i}.dinput{j}=z(:,:,:,j,:);
             end
-            fprintf('finished %dth backpropagation layer for dx in discriminator %s\n',i,datestr(now,13));
+            
+            fprintf('finished %dth backpropagation loop for dx in discriminator %s\n',i,datestr(now,13));
             
             if strcmp(update,'true')
                 %compute the dw
@@ -106,19 +111,24 @@ elseif strcmp(forward_or_backward,'backward')
                         
                         net.layers{i}.dw=net.layers{i}.dw/batch_size;
                     end
-                    fprintf('finished %dth backpropagation layer in %d loop for dw in discriminator %s\n',i,j,datestr(now,13));
                 end
+                
+                fprintf('finished %dth backpropagation loop for dw in discriminator %s\n',i,datestr(now,13));
            end
         end
     end
     
     %calc gradient for every weigths by using Nesterov momentum algorithm
     if strcmp(update,'true')
+        momentum = net.momentum;
+        lr = net.lr;
+        BN_lr = net.BNlr;
+        wd = net.weight_decay;
         for i=1:(numel(net.layers)-1)
             %ascending the discriminator loss
             net.layers{i}.dw = net.layers{i}.dw.*(-1);
-            net.layers{i}.histdw = momentum * net.layers{i}.histdw + lr * (model.layers{i}.dw + wd * model.layers{i}.w);
-            model.layers{i}.w = model.layers{i}.w - (model.layers{i}.histdw);
+            net.layers{i}.histdw = momentum * net.layers{i}.histdw + lr * (net.layers{i}.dw + wd * net.layers{i}.w);
+            net.layers{i}.w = net.layers{i}.w - (net.layers{i}.histdw);
             
             for j=1:net.layers{i}.outputMaps
                 net.layers{i}.histdlamda(j,1) = momentum * net.layers{i}.histdlamda(j,1) + BN_lr * (net.layers{i}.dlamda(j,1) + net.layers{i}.lamda(j,1));
