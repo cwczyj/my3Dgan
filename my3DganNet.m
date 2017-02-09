@@ -65,11 +65,14 @@ for x=1:epoch
         discriminator = myDiscriminator(discriminator,gen_output,'forward','true');
         disc_output_G = discriminator.layers{6}.input{1};
         
-        disc_Loss = log10(disc_output_real) + log10(1-disc_output_G);
-        disc_Loss = mean(disc_Loss(:));
-        disc_Loss = disc_Loss*ones(10,1);
+        %derivation of the Loss (disc_Loss = log(disc_output_real) +
+        %log(1-disc_output_G);)
+        d_Loss = disc_output_real.^(-1);
+        d_gen_Loss = (-1)*disc_output_G.^(-1);
         
-        discriminator = myDiscriminator(discriminator,disc_Loss','backward','true');
+        discriminator = myDiscriminator(discriminator,d_Loss,'backward','true');
+        discriminator = myDiscriminator(discriminator,d_gen_Loss,'backward','true');
+        save(['tmp_discriminator',num2str(j),'.mat'],discriminator);
     end
     
     rand_z = rand([200,10],'single');
@@ -82,7 +85,7 @@ for x=1:epoch
     
     disc_Loss = log10(1-disc_output_G);
     disc_Loss = mean(disc_Loss(:));
-    disc_Loss = disc_Loss*ones(10,1);
+    disc_Loss = (disc_Loss^-1)*ones(10,1);
     
     discriminator = myDiscriminator(discriminator,disc_Loss,'backward','false');
     gen_Loss = discriminator.layers{1}.dinput{1};
