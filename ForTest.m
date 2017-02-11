@@ -1,12 +1,14 @@
 rng('shuffle');
 
-load tmp_generator.mat
-load tmp_discriminator.mat
+load tmp_generator2.mat
+load tmp_discriminator2.mat
+load batch_list.mat
+load real_batch_data.mat
 
-disc_Loss = log10(disc_output_real) + log10(1-disc_output_G);
-disc_Loss = mean(disc_Loss(:));
-disc_Loss = disc_Loss*ones(10,1);
-discriminator = myDiscriminator(discriminator,disc_Loss','backward','true');
+
+
+
+
 
 if 0
 rand_z = rand([200,10],'single');

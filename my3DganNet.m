@@ -10,7 +10,7 @@ generator.layers = {
     struct('type', 'output');
 };
 generator.batchSize = 10;
-generator.lr = 0.0025;
+generator.lr = 0.01;
 generator.momentum = 0.5;
 generator.BNlr = 0.001;
 generator.weight_decay = 1e-5;
@@ -26,7 +26,7 @@ discriminator.layers = {
 };
 discriminator.LeakyReLU = 0.2;
 discriminator.batchSize = 10;
-discriminator.lr = 1e-5;
+discriminator.lr = 0.01;
 discriminator.momentum = 0.9;
 discriminator.BNlr = 0.001;
 discriminator.weight_decay = 1e-5;
@@ -69,10 +69,17 @@ for x=1:epoch
         %log(1-disc_output_G);)
         d_Loss = disc_output_real.^(-1);
         d_gen_Loss = (-1)*disc_output_G.^(-1);
+        tmp=['tmp_discriminator_before_backward',num2str(j),'.mat'];
+        save(tmp,'discriminator');
+        tmp=['d_Loss',num2str(j),'.mat'];
+        save(tmp,'d_Loss');
+        tmp=['d_gen_Loss',num2str(j),'.mat'];
+        save(tmp,'d_gen_Loss');
         
         discriminator = myDiscriminator(discriminator,d_Loss,'backward','true');
         discriminator = myDiscriminator(discriminator,d_gen_Loss,'backward','true');
-        save(['tmp_discriminator',num2str(j),'.mat'],discriminator);
+        save(['tmp_discriminator',num2str(j),'.mat'],'discriminator');
+        save(['tmp_generator',num2str(j),'.mat'],'generator');
     end
     
     rand_z = rand([200,10],'single');

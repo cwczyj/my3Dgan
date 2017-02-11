@@ -32,7 +32,7 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                 fprintf('finish the %s layers\n',net.layers{i}.type);
             elseif strcmp(net.layers{i}.type,'convolution')
                 net.layers{i+1}.layerSize=(net.layers{i}.layerSize-1)*(net.layers{i}.stride-1)+...
-                                           net.layers{i}.layerSize+net.layers{i}.kernels-1-2;
+                                           net.layers{i}.layerSize+net.layers{i}.kernels-1-2*net.layers{i}.padding;
                 for j=1:net.layers{i}.outputMaps             
                     net.layers{i}.ReLUin{j}=zeros(net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,...
                         batch_size);
@@ -126,6 +126,7 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                 fprintf('finish %dth bp layer for dx in generator at %s\n',i,datestr(now,13));
                 
                 %compute dw
+                net.layers{i}.dw=net.layers{i}.dw*0;
                 for l=1:numel(net.layers{i}.input)
                     tmpSizeofInput = (size(net.layers{i}.input{l},1)-1)*(net.layers{i}.stride-1)+size(net.layers{i}.input{l},1);
                     for j=1:net.layers{i}.outputMaps
@@ -135,8 +136,6 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                             net.layers{i}.dw(:,:,:,l,j)=net.layers{i}.dw(:,:,:,l,j)+...
                                 my3dConv(net.layers{i+1}.dinput{j}(:,:,:,k),tmpInput,1,net.layers{i}.padding,'C');
                         end
-                        
-                        net.layers{i}.dw=net.layers{i}.dw/batch_size;
                     end
                 end                
             end

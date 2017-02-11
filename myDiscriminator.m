@@ -54,7 +54,7 @@ elseif strcmp(forward_or_backward,'backward')
     %% for Discriminator bp, but when update is false, don't update weights of the network
     
     lReLU_rate = net.LeakyReLU;
-    batch_size = size(x,2);
+    batch_size = size(x,4);
     net.layers{6}.dinput{1} = x;
     for i = (numel(net.layers)-1):-1:1
         if strcmp(net.layers{i}.type,'fullconnect')
@@ -97,6 +97,7 @@ elseif strcmp(forward_or_backward,'backward')
             fprintf('finished %dth backpropagation loop for dx in discriminator %s\n',i,datestr(now,13));
             
             if strcmp(update,'true')
+                net.layers{i}.dw=net.layers{i}.dw*0;
                 %compute the dw
                 for j=1:net.layers{i}.outputMaps
                     % too important to get understand!!!
@@ -108,8 +109,6 @@ elseif strcmp(forward_or_backward,'backward')
                             net.layers{i}.dw(:,:,:,l,j)=net.layers{i}.dw(:,:,:,l,j)+...
                                 my3dConv(net.layers{i}.input{l}(:,:,:,k),tmpInput,1,net.layers{i}.padding,'C');
                         end
-                        
-                        net.layers{i}.dw=net.layers{i}.dw/batch_size;
                     end
                 end
                 
@@ -131,9 +130,9 @@ elseif strcmp(forward_or_backward,'backward')
             net.layers{i}.w = net.layers{i}.w - (net.layers{i}.histdw);
             
             for j=1:net.layers{i}.outputMaps
-                net.layers{i}.histdlamda(j,1) = momentum * net.layers{i}.histdlamda(j,1) + BN_lr * (net.layers{i}.dlamda(j,1) + net.layers{i}.lamda(j,1));
+                net.layers{i}.histdlamda(j,1) = momentum * net.layers{i}.histdlamda(j,1) + BN_lr * (net.layers{i}.dlamda(j,1) + wd*net.layers{i}.lamda(j,1));
                 net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1) - (net.layers{i}.histdlamda(j,1));
-                net.layers{i}.histdbeta(j,1) = momentum * net.layers{i}.histdbeta(j,1) + BN_lr * (net.layers{i}.dbeta(j,1) + net.layers{i}.beta(j,1));
+                net.layers{i}.histdbeta(j,1) = momentum * net.layers{i}.histdbeta(j,1) + BN_lr * (net.layers{i}.dbeta(j,1) + wd*net.layers{i}.beta(j,1));
                 net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1) - (net.layers{i}.histdbeta(j,1));
             end
         end

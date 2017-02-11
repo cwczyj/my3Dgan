@@ -24,8 +24,8 @@ function [ net ] = myNetSetup( net , fanin)
                 fan_in, fan_out]);
         end
         %lamda and beta for Batch Normalization layer;
-        net.layers{i}.lamda = rand([net.layers{i}.outputMaps,1],'single');
-        net.layers{i}.beta = rand([net.layers{i}.outputMaps,1],'single');
+        net.layers{i}.lamda = (rand([net.layers{i}.outputMaps,1],'single')-0.5)*2 * sqrt(6 / (fan_in + fan_out));
+        net.layers{i}.beta = (rand([net.layers{i}.outputMaps,1],'single')-0.5)*2 * sqrt(6 / (fan_in + fan_out));
         
         net.layers{i}.dlamda = zeros([net.layers{i}.outputMaps,1],'single');
         net.layers{i}.dbeta = zeros([net.layers{i}.outputMaps,1],'single');
