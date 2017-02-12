@@ -14,7 +14,7 @@ if strcmp(forward_or_backward,'forward')
     net.layers{1}.layerSize = size(x,1);
     net.layers{1}.input{1} = x;
     
-    for i=1:(numel(net.layers)-1)
+    for i=1:numel(net.layers)
         if strcmp(net.layers{i}.type,'fullconnect')
             % as if there is no fullconnect layer in the discriminator net.
         elseif strcmp(net.layers{i}.type,'convolution')
@@ -34,17 +34,15 @@ if strcmp(forward_or_backward,'forward')
                 end
                 
                 if strcmp(net.layers{i}.actFun,'LReLU')
-                    net.layers{i}.ReLUout{j} = myLeakyReLU(net.layers{i}.ReLUin{j},lReLU_rate,'forward',0);
-                elseif strcmp(net.layers{i}.actFun,'sigmoid')
-                    net.layers{i}.ReLUout{j} = mySigmoidFun(net.layers{i}.ReLUin{j},'forward',0);
+                    net.layers{i}.ReLUout{j} = myLeakyReLU(net.layers{i}.ReLUin{j},lReLU_rate,'forward',0);                    
                 end
                 
-                if i ~= 5
-                    net.layers{i+1}.input{j} = my3DBatchNormalization...
-                        (net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),net.layers{i}.beta(j,1),'forward',0);
-                else
-                    net.layers{i+1}.input{j} = net.layers{i}.ReLUout{j};
-                end
+                net.layers{i+1}.input{j} = my3DBatchNormalization...
+                    (net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),net.layers{i}.beta(j,1),'forward',0);
+            end
+        elseif strcmp(net.layers{i}.type,'output')
+            for j=1:numel(net.layers{i}.input)
+                net.layers{i}.output{j} = mySigmoidFun(net.layers{i}.input{j},'forward',0);
             end
         end
         fprintf('finished on %dth forward loop in discriminator %s\n',i,datestr(now,13));
@@ -55,8 +53,7 @@ elseif strcmp(forward_or_backward,'backward')
     
     lReLU_rate = net.LeakyReLU;
     batch_size = size(x,4);
-    net.layers{6}.dinput{1} = x;
-    for i = (numel(net.layers)-1):-1:1
+    for i = numel(net.layers):-1:1
         if strcmp(net.layers{i}.type,'fullconnect')
             %there is no fullconnect layer in the discriminator net.
         elseif strcmp(net.layers{i}.type,'convolution')
@@ -65,20 +62,13 @@ elseif strcmp(forward_or_backward,'backward')
             
             %compute the dx
             for j=1:net.layers{i}.outputMaps
-                if i ~= 5
-                    net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
-                    [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
-                            my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
-                            net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
-                else
-                    net.layers{i+1}.dinput{j} = reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
-                    net.layers{i}.dBN{j} = net.layers{i+1}.dinput{j};
-                end
+                net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
+                [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
+                        my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
+                        net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
                     
                  if strcmp(net.layers{i}.actFun,'LReLU')
-                     net.layers{i}.dReLU{j} = myLeakyReLU(net.layers{i}.ReLUin{j},lReLU_rate,'backward',net.layers{i}.dBN{j});
-                 elseif strcmp(net.layers{i}.actFun,'sigmoid')
-                     net.layers{i}.dReLU{j} = mySigmoidFun(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});
+                     net.layers{i}.dReLU{j} = myLeakyReLU(net.layers{i}.ReLUin{j},lReLU_rate,'backward',net.layers{i}.dBN{j});     
                  end  
                     
                 for k=1:batch_size
@@ -97,7 +87,7 @@ elseif strcmp(forward_or_backward,'backward')
             fprintf('finished %dth backpropagation loop for dx in discriminator %s\n',i,datestr(now,13));
             
             if strcmp(update,'true')
-                net.layers{i}.dw=net.layers{i}.dw*0;
+                net.layers{i}.dw=net.layers{i}.dw.*0;
                 %compute the dw
                 for j=1:net.layers{i}.outputMaps
                     % too important to get understand!!!
@@ -113,7 +103,11 @@ elseif strcmp(forward_or_backward,'backward')
                 end
                 
                 fprintf('finished %dth backpropagation loop for dw in discriminator %s\n',i,datestr(now,13));
-           end
+            end
+        elseif strcmp(net.layers{i}.type,'output')
+            for j=1:numel(net.layers{i}.input)
+                net.layers{i}.dinput{j} = mySigmoidFun(net.layers{i}.input{j},'backward',x);
+            end
         end
     end
     
@@ -125,7 +119,6 @@ elseif strcmp(forward_or_backward,'backward')
         wd = net.weight_decay;
         for i=1:(numel(net.layers)-1)
             %ascending the discriminator loss
-            net.layers{i}.dw = net.layers{i}.dw.*(-1);
             net.layers{i}.histdw = momentum * net.layers{i}.histdw + lr * (net.layers{i}.dw + wd * net.layers{i}.w);
             net.layers{i}.w = net.layers{i}.w - (net.layers{i}.histdw);
             

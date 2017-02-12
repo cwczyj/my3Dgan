@@ -13,7 +13,7 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
         net.layers{1}.layerSize=200;
         net.layers{2}.layerSize = 4;
         
-        for i = 1:(numel(net.layers)-1)
+        for i = 1:numel(net.layers)
 
             if strcmp(net.layers{i}.type,'fullconnect')
                 for j=1:net.layers{i}.outputMaps
@@ -46,19 +46,17 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                     end
                     
                     if strcmp(net.layers{i}.actFun,'ReLU')
-                        net.layers{i}.ReLUout{j} = myReLU(net.layers{i}.ReLUin{j},'forward',0);
-                    elseif strcmp(net.layers{i}.actFun,'sigmoid')
-                        net.layers{i}.ReLUout{j} = mySigmoidFun(net.layers{i}.ReLUin{j},'forward',0);
+                        net.layers{i}.ReLUout{j} = myReLU(net.layers{i}.ReLUin{j},'forward',0);                    
                     end
                     
                     %there is no Batch Normaliaztion before the last
                     %layer
-                    if i~=5
-                        net.layers{i+1}.input{j} = my3DBatchNormalization...
-                            (net.layers{i}.ReLUout{j}, net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1),'forward',0);
-                    else
-                        net.layers{i+1}.input{j}=net.layers{i}.ReLUout{j};
-                    end 
+                    net.layers{i+1}.input{j} = my3DBatchNormalization...
+                        (net.layers{i}.ReLUout{j}, net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1),'forward',0);
+                end
+            elseif strcmp(net.layers{i}.type,'output')
+                for j=1:numel(net.layers{i}.input)
+                    net.layers{i}.output{j} = mySigmoidFun(net.layers{i}.input{j},'forward',0);
                 end
             end
              fprintf('finished the %dth layer in generator %s\n',i,datestr(now,13));
@@ -68,19 +66,13 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
         %% for Generator bp
         
         batch_size=size(x,5);
-        net.layers{6}.dinput{1}=x;
-        for i=(numel(net.layers)-1):-1:1
+        for i=numel(net.layers):-1:1
             if strcmp(net.layers{i}.type,'fullconnect')
                 for j=1:net.layers{i}.outputMaps
-                    if i~=5
-                        net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
-                        [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
-                                my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
-                                net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
-                    else
-                        net.layers{i+1}.dinput{j} = reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
-                        net.layers{i}.dBN{j} = net.layers{i+1}.dinput{j};
-                    end
+                    net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
+                    [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
+                            my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
+                            net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
                     
                     net.layers{i}.dReLU{j} = myReLU(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});
                     
@@ -95,20 +87,13 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                 
                 %compute dx
                 for j=1:net.layers{i}.outputMaps
-                    if i~= 5
-                        net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
-                        [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
-                            my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
-                            net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
-                    else
-                        net.layers{i+1}.dinput{j} = reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
-                        net.layers{i}.dBN{j} = net.layers{i+1}.dinput{j};
-                    end
+                    net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
+                    [net.layers{i}.dBN{j},net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
+                        my3DBatchNormalization(net.layers{i}.ReLUout{j},net.layers{i}.lamda(j,1),...
+                        net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput{j});
                     
                     if strcmp(net.layers{i}.actFun,'ReLU')
-                        net.layers{i}.dReLU{j} = myReLU(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});
-                    elseif strcmp(net.layers{i}.actFun,'sigmoid')
-                        net.layers{i}.dReLU{j} = mySigmoidFun(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});
+                        net.layers{i}.dReLU{j} = myReLU(net.layers{i}.ReLUin{j},'backward',net.layers{i}.dBN{j});                
                     end
                     
                     for k=1:batch_size
@@ -126,7 +111,7 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                 fprintf('finish %dth bp layer for dx in generator at %s\n',i,datestr(now,13));
                 
                 %compute dw
-                net.layers{i}.dw=net.layers{i}.dw*0;
+                net.layers{i}.dw=net.layers{i}.dw.*0;
                 for l=1:numel(net.layers{i}.input)
                     tmpSizeofInput = (size(net.layers{i}.input{l},1)-1)*(net.layers{i}.stride-1)+size(net.layers{i}.input{l},1);
                     for j=1:net.layers{i}.outputMaps
@@ -137,7 +122,12 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
                                 my3dConv(net.layers{i+1}.dinput{j}(:,:,:,k),tmpInput,1,net.layers{i}.padding,'C');
                         end
                     end
-                end                
+                end
+                
+            elseif strcmp(net.layers{i}.type,'output')
+                for j=1:numel(net.layers{i}.input)
+                    net.layers{i}.dinput{j} = mySigmoidFun(net.layers{i}.input{j},'backward',x);
+                end
             end
             
             fprintf('finished %dth bp layer in generator %s\n',i,datestr(now,13));
@@ -154,10 +144,10 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
             
             if i ~= 5
                 for j=1:net.layers{i}.outputMaps
-                    net.layers{i}.histdlamda(j,1) = momentum * net.layers{i}.histdlamda(j,1) + BN_lr * (net.layers{i}.dlamda(j,1) + net.layers{i}.lamda(j,1));
+                    net.layers{i}.histdlamda(j,1) = momentum * net.layers{i}.histdlamda(j,1) + BN_lr * (net.layers{i}.dlamda(j,1) + wd*net.layers{i}.lamda(j,1));
                     net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1) - (net.layers{i}.histdlamda(j,1));
 
-                    net.layers{i}.histdbeta(j,1) = momentum * net.layers{i}.histdbeta(j,1) + BN_lr * (net.layers{i}.dbeta(j,1) + net.layers{i}.beta(j,1));
+                    net.layers{i}.histdbeta(j,1) = momentum * net.layers{i}.histdbeta(j,1) + BN_lr * (net.layers{i}.dbeta(j,1) + wd*net.layers{i}.beta(j,1));
                     net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1) - (net.layers{i}.histdbeta(j,1));
                 end
             end
