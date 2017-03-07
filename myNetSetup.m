@@ -1,6 +1,6 @@
 function [ net ] = myNetSetup( net , fanin)
 %MYNETSETUP Summary of this function goes here
-%   initial the weights of a network
+%   initial the weights of a network, revise for GPU computation;
     numlayers = numel(net.layers)-1;
     fan_in = fanin;
     
@@ -12,16 +12,18 @@ function [ net ] = myNetSetup( net , fanin)
         if strcmp(net.layers{i}.type,'fullconnect')
             %15 article for ReLU networks 
             %(Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification)
-            net.layers{i}.w=normrnd(0,Guass_std,[net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
-            net.layers{i}.dw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
-            net.layers{i}.histdw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps]);
+            net.layers{i}.w=normrnd(0,Guass_std,[fan_in, net.layers{i}.kernels^3, net.layers{i}.outputMaps]);
+            net.layers{i}.w=single(net.layers{i}.w);
+            net.layers{i}.dw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps],'single');
+            net.layers{i}.histdw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps],'single');
         elseif strcmp(net.layers{i}.type,'convolution')
-            net.layers{i}.w=normrnd(0,Guass_std,[net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
-                fan_in, fan_out]);
-            net.layers{i}.dw=zeros([net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
-                fan_in, fan_out]);
-            net.layers{i}.histdw=zeros([net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
-                fan_in, fan_out]);
+            net.layers{i}.w=normrnd(0,Guass_std,[fan_in,net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
+                fan_out]);
+            net.layers{i}.w=single(net.layers{i}.w);
+            net.layers{i}.dw=zeros([fan_in,net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
+                fan_out],'single');
+            net.layers{i}.histdw=zeros([fan_in,net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
+                fan_out],'single');
         end
         %lamda and beta for Batch Normalization layer;
         net.layers{i}.lamda = (rand([net.layers{i}.outputMaps,1],'single')-0.5)*2 * sqrt(6 / (fan_in + fan_out));

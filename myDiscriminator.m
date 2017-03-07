@@ -116,17 +116,22 @@ elseif strcmp(forward_or_backward,'backward')
         momentum = net.momentum;
         lr = net.lr;
         BN_lr = net.BNlr;
-        wd = net.weight_decay;
+%        wd = net.weight_decay;
         for i=1:(numel(net.layers)-1)
             %ascending the discriminator loss
-            net.layers{i}.histdw = momentum * net.layers{i}.histdw + lr * (net.layers{i}.dw + wd * net.layers{i}.w);
-            net.layers{i}.w = net.layers{i}.w - (net.layers{i}.histdw);
+%            net.layers{i}.histdw = momentum * net.layers{i}.histdw + lr * (net.layers{i}.dw + wd * net.layers{i}.w);
+            net.layers{i}.histdw = momentum * net.layers{i}.histdw + (1-momentum).*net.layers{i}.dw.^2;
+%            net.layers{i}.w = net.layers{i}.w - (net.layers{i}.histdw);
+            net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.dw)./(sqrt(net.layers{i}.histdw)+1.0e-8);
             
             for j=1:net.layers{i}.outputMaps
-                net.layers{i}.histdlamda(j,1) = momentum * net.layers{i}.histdlamda(j,1) + BN_lr * (net.layers{i}.dlamda(j,1) + wd*net.layers{i}.lamda(j,1));
-                net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1) - (net.layers{i}.histdlamda(j,1));
-                net.layers{i}.histdbeta(j,1) = momentum * net.layers{i}.histdbeta(j,1) + BN_lr * (net.layers{i}.dbeta(j,1) + wd*net.layers{i}.beta(j,1));
-                net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1) - (net.layers{i}.histdbeta(j,1));
+%                 net.layers{i}.histdlamda(j,1) = momentum * net.layers{i}.histdlamda(j,1) + BN_lr * (net.layers{i}.dlamda(j,1) + wd*net.layers{i}.lamda(j,1));
+%                 net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1) - (net.layers{i}.histdlamda(j,1));
+%                 net.layers{i}.histdbeta(j,1) = momentum * net.layers{i}.histdbeta(j,1) + BN_lr * (net.layers{i}.dbeta(j,1) + wd*net.layers{i}.beta(j,1));
+%                 net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1) - (net.layers{i}.histdbeta(j,1));
+
+                net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1)-BN_lr.*net.layers{i}.dlamda(j,1);
+                net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1)-BN_lr.*net.layers{i}.dbeta(j,1);
             end
         end
     end

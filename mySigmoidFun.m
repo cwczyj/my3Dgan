@@ -11,7 +11,7 @@ function [ output ] = mySigmoidFun( A , forward_or_backward,Loss)
     end
 
     function X=sigmoid(X)
-        X=1./(1+exp(-1*X));
+        X=1./(1+exp(-1.*X));
     end
 
 end
