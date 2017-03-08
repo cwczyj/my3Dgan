@@ -42,7 +42,7 @@ num = 10;
 
 %initial the parameters of the generator network
 generator = myNetSetup(generator,200);
-% discriminator = myNetSetup(discriminator,1);
+discriminator = myNetSetup4Discriminator(discriminator,1);
 
 %read batch data
 

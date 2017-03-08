@@ -230,9 +230,9 @@ if 0
 end
 
 %% test kConv_weight
-if 0
-    data=rand(100,4,4,4,'single');
-    kernel=rand(100,3,3,3,64,'single');
+if 1
+    data=randi([1,10],100,10,10,10,'single');
+    kernel=randi([1,10],100,4,4,4,16,'single');
     stride=1;
     numColors=size(data,5);
     kConv=kConv_weight;
@@ -419,7 +419,7 @@ if 0
 end
 
 %% test kConv_backward_my
-
+if 0
     data=rand(25,4,4,4,512,'single');
     kernel=rand(512,4,4,4,16,'single');
     stride=1;
@@ -461,3 +461,4 @@ end
     toc
     
     target1 = gather(target_gpu1);
+end

@@ -7,7 +7,7 @@ function [ y ] = myGenerator( net, x ,forward_or_backward)
 %   y is the output of the network(a [64 64 64] voxel)
 
 
-global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forward_c kConv_weight kConv_weight_c kConv_backward_my;
+global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c kConv_backward_my;
 
     if strcmp(forward_or_backward,'forward')
     %% for Generator ff
@@ -55,7 +55,7 @@ global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forwar
                     kConv=kConv_backward_my;
                 end
                 
-                if(size(net.layers{i}.input,1) > batchSizeForCompute)
+                if(batch_size > batchSizeForCompute)
                     iterate_num = ceil(size(net.layers{i}.input,1)/batchSizeForCompute);
                     for tmp_x=1:iterate_num
                         if tmp_x == iterate_num
@@ -69,7 +69,7 @@ global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forwar
                         tmpin = zeros(end_num-start_num,size(net.layers{i}.input,2),size(net.layers{i}.input,3),...
                             size(net.layers{i}.input,4),size(net.layers{i}.input,5),'single');                      
                         for tmp_batch = start_num:end_num
-                            tmpin(tmp_batch,:,:,:,:)=net.layers{i}.input(tmp_batch,:,:,:,:);
+                            tmpin(tmp_batch,:,:,:,:)=net.layers{i}.input((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:);
                         end
                         
                         tmpout = zeros(end_num-start_num,size(net.layers{i}.ReLUtmpin,2),size(net.layers{i}.ReLUtmpin,3),...
@@ -77,7 +77,7 @@ global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forwar
                         tmpout = myGPUConv(kConv,tmpin,net.layers{i}.w,net.layers{i}.stride,'backward');
                         
                         for tmp_batch = start_num:end_num
-                            net.layers{i}.ReLUtmpin(tmp_batch,:,:,:,:) = tmpout(tmp_batch,:,:,:,:);
+                            net.layers{i}.ReLUtmpin((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:) = tmpout(tmp_batch,:,:,:,:);
                         end
                     end
                 else
@@ -142,11 +142,11 @@ global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forwar
                 tmp = zeros([size(net.layers{i}.dReLU,1),size(net.layers{i}.dReLU,2)+2 * net.layers{i}.padding,...
                     size(net.layers{i}.dReLU,3)+2 * net.layers{i}.padding,size(net.layers{i}.dReLU,4)+2 * net.layers{i}.padding,...
                     size(net.layers{i}.dReLU,5)],'single');
-                tmp(1+net.layers{i}.padding:end-net.layers{i}.padding,1+net.layers{i}.padding:end-net.layers{i}.padding,...
-                    1+net.layers{i}.padding:end-net.layers{i}.padding) = net.layers{i}.dReLU;
+                tmp(:,1+net.layers{i}.padding:end-net.layers{i}.padding,1+net.layers{i}.padding:end-net.layers{i}.padding,...
+                    1+net.layers{i}.padding:end-net.layers{i}.padding,:) = net.layers{i}.dReLU;
                 
                 net.layers{i}.dinput = zeros(batch_size,net.layers{i}.layerSize,net.layers{i}.layerSize,net.layers{i}.layerSize,...
-                    size(net.layers{i}.input,5));
+                    size(net.layers{i}.input,5),'single');
                 
                 if size(tmp,5)==1
                     kConv=kConv_forward;
@@ -154,7 +154,7 @@ global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forwar
                     kConv=kConv_forward_c;
                 end
                 
-                if(size(net.layers{i}.input,1) > batchSizeForCompute)
+                if(batch_size > batchSizeForCompute)
                     iterate_num = ceil(size(net.layers{i}.input,1)/batchSizeForCompute);
                     for tmp_x=1:iterate_num
                         if tmp_x == iterate_num
@@ -165,30 +165,78 @@ global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forwar
                             end_num = tmp_x * batchSizeForCompute;
                         end
                         
-                        tmpin = zeros(end_num-start_num,size(net.layers{i}.input,2),size(net.layers{i}.input,3),...
-                            size(net.layers{i}.input,4),size(net.layers{i}.input,5),'single');                      
+                        tmpin = zeros(end_num-start_num,size(tmp,2),size(tmp,3),size(tmp,4),...
+                            size(tmp,5),'single');                      
                         for tmp_batch = start_num:end_num
-                            tmpin(tmp_batch,:,:,:,:)=tmp(tmp_batch,:,:,:,:);
+                            tmpin(tmp_batch,:,:,:,:)=tmp((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:);
                         end
                         
-                        tmpout = zeros(end_num-start_num,size(net.layers{i}.ReLUtmpin,2),size(net.layers{i}.ReLUtmpin,3),...
-                            size(net.layers{i}.ReLUtmpin,4),size(net.layers{i}.ReLUtmpin,5),'single');  
+                        tmpout = zeros(end_num-start_num,size(net.layers{i}.dinput,2),size(net.layers{i}.dinput,3),...
+                            size(net.layers{i}.dinput,4),size(net.layers{i}.dinput,5),'single');  
                         tmpout = myGPUConv(kConv,tmpin,net.layers{i}.w,net.layers{i}.stride,'forward');
                         
                         for tmp_batch = start_num:end_num
-                            net.layers{i}.ReLUtmpin(tmp_batch,:,:,:,:) = tmpout(tmp_batch,:,:,:,:);
+                            net.layers{i}.dinput((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:) = tmpout(tmp_batch,:,:,:,:);
                         end
                     end
                 else
                     net.layers{i}.dinput = myGPUConv(kConv,tmp,net.layers{i}.w,net.layers{i}.stride,'forward');
                 end
-
+                
+                fprintf('finish %dth bp layer for dx in generator at %s\n',i,datestr(now,13));
+                
                 % compute dw
+                tmp = zeros([batch_size,net.layers{i}.layerSize + 2 * net.layers{i}.padding,...
+                    net.layers{i}.layerSize+ 2 * net.layers{i}.padding,...
+                    net.layers{i}.layerSize+ 2 * net.layers{i}.padding,size(net.layers{i}.dinput,5)],'single');
+                tmp(:,1+net.layers{i}.padding:end-net.layers{i}.padding,1+net.layers{i}.padding:end-net.layers{i}.padding,...
+                    1+net.layers{i}.padding:end-net.layers{i}.padding,:) = net.layers{i}.dinput;
+                
+                net.layers{i}.dw=net.layers{i}.dw.*0;
+                if size(tmp,5) == 1
+                    kConv_w = kConv_weight;
+                else
+                    kConv_w = kConv_weight_c;
+                end
+                
+                if(batch_size > batchSizeForCompute)
+                    iterate_num = ceil(size(net.layers{i}.input,1)/batchSizeForCompute);
+                    for tmp_x=1:iterate_num
+                        if tmp_x == iterate_num
+                            start_num = (tmp_x-1) * batchSizeForCompute + 1;
+                            end_num = size(net.layers{i}.input,1);
+                        else
+                            start_num = (tmp_x-1) * batchSizeForCompute + 1;
+                            end_num = tmp_x * batchSizeForCompute;
+                        end
+                        
+                        tmpdin = zeros(end_num-start_num,size(net.layers{i}.dinput,2),size(net.layers{i}.dinput,3),...
+                            size(net.layers{i}.dinput,4),size(net.layers{i}.dinput,5),'single');
+                        tmpin = zeros(end_num-start_num,size(net.layers{i}.input,2),size(net.layers{i}.input,3),...
+                            size(net.layers{i}.input,4),...
+                            size(net.layers{i}.input,5),'single');
+                        for tmp_batch = start_num:end_num
+                            tmpdin(tmp_batch,:,:,:,:) = tmp((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:);
+                            tmpin(tmp_batch,:,:,:,:) = net.layers{i}.input((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:);
+                        end
+                        
+                        tmpout = zeros(end_num-start_num,size(net.layers{i}.dw,2),size(net.layers{i}.dw,3),size(net.layers{i}.dw,4),...
+                            size(net.layers{i}.dw,5),'single');  
+                        tmpout = myGPUConv(kConv_w,tmpdin,tmpin,net.layers{i}.stride,'weight');
+                        
+                        net.layers{i}.dw =net.layers{i}.dw + tmpout;
+                    end
+                else
+                    net.layers{i}.dw = myGPUConv(kConv_w,tmp,net.layers{i}.input,net.layers{i}.stride,'weight');
+                end
             elseif strcmp(net.layers{i}.type,'output')
                 net.layers{i}.dinput = zeros(size(net.layers{i}.input),'single');
                 x=reshape(x,size(net.layers{i}.input));
                 net.layers{i}.dinput = mySigmoidFun(net.layers{i}.input,'backward',x);
             end
+            
+            fprintf('finished %dth bp layer in generator %s\n',i,datestr(now,13));
+        end
 %             if strcmp(net.layers{i}.type,'fullconnect')
 %                 for j=1:net.layers{i}.outputMaps
 %                     net.layers{i+1}.dinput{j}=reshape(net.layers{i+1}.dinput{j},size(net.layers{i}.ReLUout{j}));
@@ -254,7 +302,6 @@ global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forwar
 %             end
 %             
 %             fprintf('finished %dth bp layer in generator %s\n',i,datestr(now,13));
-        end
         
         %ascending the discriminator loss
         momentum = net.momentum;
