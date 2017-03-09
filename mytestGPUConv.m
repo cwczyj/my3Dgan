@@ -1,4 +1,4 @@
-global kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forward_c kConv_weight kConv_weight_c kConv_backward_my;
+global kConv_forward_r kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forward_c kConv_weight kConv_weight_c kConv_backward_my;
 
 rng('shuffle');
 
@@ -86,9 +86,9 @@ if 0
     end
 end
 %% test kConv_forward_c;
-if 0
-    data=rand([2,8,8,8,10],'single');
-    kernel=rand([32,4,4,4,10],'single');
+if 1
+    data=randi([1,10],[2,3,3,3,10],'single');
+    kernel=randi([1,10],[32,2,2,2,10],'single');
     stride=1;
     numColors=size(data,5);
     kConv=kConv_forward_c;
@@ -115,22 +115,36 @@ if 0
     target = gather(target_gpu);
     toc
     
-%     originalConv=zeros(size(target));
-%     tmpkernel=zeros(size(kernel));
-%     for i=1:size(kernel,1)
-%         for j=1:size(kernel,5)
-%             tmpkernel(i,:,:,:,j)=flip(flip(flip(kernel(i,:,:,:,j), 2), 3),4);
-%         end
-%     end
-%     tic
-%     for i=1:size(data,1)
-%         for j=1:size(kernel,1)
-%             for k=1:size(data,5)
-%                 originalConv(i,:,:,:,j) = originalConv(i,:,:,:,j) +convn(data(i,:,:,:,k),tmpkernel(j,:,:,:,k),'valid');
-%             end
-%         end
-%     end
-%     toc
+    % verify the kConv_forward_reverse
+    data1=data;
+    kernel1=kernel(1,:,:,:,:);
+    stride=1;
+    numColors=size(data1,5);
+    kConv1=kConv_forward_r;
+
+    numImages = size(data1,1); imgSizeX = size(data1,2); imgSizeY = size(data1,3); imgSizeZ = size(data1,4); 
+    numFilters = size(kernel1,1); filterSize =  size(kernel1,2); 
+
+    paddingStart = 0; moduleStride = stride; imgStride = numImages; numGroups = 1;
+    numModulesX = (imgSizeX - filterSize) / stride + 1; numModulesY = (imgSizeY - filterSize) / stride + 1; numModulesZ = (imgSizeZ - filterSize) / stride + 1;
+
+    filterPerThread = 1; imagePerThread = 1;
+
+    kConv1.ThreadBlockSize = [32,4];
+    kConv1.GridSize = [ ceil(numImages/(32 * imagePerThread)),numModulesX * numModulesY * ceil(numModulesZ / 4)];
+
+    target1 = zeros(numImages, numModulesX, numModulesY, numModulesZ, numFilters, 'single');
+
+    tic
+    target_gpu1 = feval(kConv1,...
+        target1, data1, kernel1,...
+        numImages, numFilters, imgSizeZ, imgSizeY, imgSizeX, filterSize, ...
+        paddingStart, moduleStride, numModulesZ, numModulesY, numModulesX, imgStride,numColors, numGroups);
+
+    target1 = gather(target_gpu1);
+    toc
+    
+    % ~~~~~~~~~
     
     tmpdata=zeros(size(data,2),size(data,3),size(data,4),size(data,1),size(data,5));
     for i=1:size(data,1)
@@ -230,7 +244,7 @@ if 0
 end
 
 %% test kConv_weight
-if 1
+if 0
     data=randi([1,10],100,10,10,10,'single');
     kernel=randi([1,10],100,4,4,4,16,'single');
     stride=1;
