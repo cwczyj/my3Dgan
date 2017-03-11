@@ -22,13 +22,16 @@
 // _Z19kConvolve_forward_cPfS_S_iiiiiiiiiiiiii$__cuda_local_var_16495_35_non_const_shImages has been demoted
 // _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16624_35_non_const_shImages has been demoted
 // _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16625_35_non_const_shHidActs has been demoted
-// _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16671_33_non_const_pxDivs has been demoted
-// _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16754_35_non_const_shFilters has been demoted
-// _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16755_35_non_const_shHidActs has been demoted
-// _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16875_35_non_const_shFilters has been demoted
-// _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16876_35_non_const_shHidActs has been demoted
-// _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters has been demoted
-// _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_32_non_const_shImages has been demoted
+// _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16672_33_non_const_pxDivs has been demoted
+// _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16755_35_non_const_shFilters has been demoted
+// _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16756_35_non_const_shHidActs has been demoted
+// _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16876_35_non_const_shFilters has been demoted
+// _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16877_35_non_const_shHidActs has been demoted
+// _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters has been demoted
+// _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17024_32_non_const_shImages has been demoted
+// _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17161_35_non_const_shImages has been demoted
+// _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17162_35_non_const_shHidActs has been demoted
+// _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs has been demoted
 
 .visible .entry _Z18kSampleMultinomialPiPfS0_ii(
 	.param .u64 _Z18kSampleMultinomialPiPfS0_ii_param_0,
@@ -2086,7 +2089,7 @@ BB6_20:
 	// demoted variable
 	.shared .align 4 .b8 _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16625_35_non_const_shHidActs[4224];
 	// demoted variable
-	.shared .align 4 .b8 _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16671_33_non_const_pxDivs[32];
+	.shared .align 4 .b8 _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16672_33_non_const_pxDivs[32];
 
 	ld.param.u64 	%rd7, [_Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif_param_1];
 	ld.param.u64 	%rd8, [_Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif_param_2];
@@ -2162,7 +2165,7 @@ BB6_20:
 	rem.s32 	%r85, %r78, %r32;
 	add.s32 	%r86, %r84, %r85;
 	mul.wide.s32 	%rd11, %r1, 4;
-	mov.u64 	%rd12, _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16671_33_non_const_pxDivs;
+	mov.u64 	%rd12, _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16672_33_non_const_pxDivs;
 	add.s64 	%rd13, %rd12, %rd11;
 	st.shared.u32 	[%rd13], %r86;
 
@@ -2251,7 +2254,7 @@ BB7_7:
 
 BB7_9:
 	mul.wide.s32 	%rd21, %r17, 4;
-	mov.u64 	%rd22, _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16671_33_non_const_pxDivs;
+	mov.u64 	%rd22, _Z18kConvolve_weight_cPfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_16672_33_non_const_pxDivs;
 	add.s64 	%rd23, %rd22, %rd21;
 	ld.shared.u32 	%r104, [%rd23];
 	bfe.u32 	%r105, %r104, 16, 8;
@@ -3441,9 +3444,9 @@ BB7_19:
 	.reg .b32 	%r<168>;
 	.reg .b64 	%rd<46>;
 	// demoted variable
-	.shared .align 4 .b8 _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16754_35_non_const_shFilters[1088];
+	.shared .align 4 .b8 _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16755_35_non_const_shFilters[1088];
 	// demoted variable
-	.shared .align 4 .b8 _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16755_35_non_const_shHidActs[2048];
+	.shared .align 4 .b8 _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16756_35_non_const_shHidActs[2048];
 
 	ld.param.u64 	%rd11, [_Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii_param_1];
 	ld.param.u64 	%rd12, [_Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii_param_2];
@@ -3566,12 +3569,12 @@ BB8_6:
 
 	cvta.to.global.u64 	%rd3, %rd12;
 	mul.wide.s32 	%rd13, %r11, 128;
-	mov.u64 	%rd14, _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16755_35_non_const_shHidActs;
+	mov.u64 	%rd14, _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16756_35_non_const_shHidActs;
 	add.s64 	%rd15, %rd14, %rd13;
 	mul.wide.s32 	%rd16, %r12, 4;
 	add.s64 	%rd4, %rd15, %rd16;
 	mul.wide.s32 	%rd17, %r13, 68;
-	mov.u64 	%rd18, _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16754_35_non_const_shFilters;
+	mov.u64 	%rd18, _Z20kConvolve_backward_cPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16755_35_non_const_shFilters;
 	add.s64 	%rd19, %rd18, %rd17;
 	mul.wide.s32 	%rd20, %r14, 4;
 	add.s64 	%rd5, %rd19, %rd20;
@@ -3914,9 +3917,9 @@ BB8_23:
 	.reg .b32 	%r<156>;
 	.reg .b64 	%rd<31>;
 	// demoted variable
-	.shared .align 4 .b8 _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16875_35_non_const_shFilters[1088];
+	.shared .align 4 .b8 _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16876_35_non_const_shFilters[1088];
 	// demoted variable
-	.shared .align 4 .b8 _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16876_35_non_const_shHidActs[2048];
+	.shared .align 4 .b8 _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16877_35_non_const_shHidActs[2048];
 
 	ld.param.u64 	%rd7, [_Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii_param_0];
 	ld.param.u64 	%rd8, [_Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii_param_1];
@@ -4061,12 +4064,12 @@ BB9_6:
 	sub.s32 	%r29, %r9, %r53;
 	sub.s32 	%r30, %r10, %r53;
 	mul.wide.s32 	%rd10, %r110, 128;
-	mov.u64 	%rd11, _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16876_35_non_const_shHidActs;
+	mov.u64 	%rd11, _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16877_35_non_const_shHidActs;
 	add.s64 	%rd12, %rd11, %rd10;
 	mul.wide.s32 	%rd13, %r14, 4;
 	add.s64 	%rd3, %rd12, %rd13;
 	mul.wide.u32 	%rd14, %r8, 68;
-	mov.u64 	%rd15, _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16875_35_non_const_shFilters;
+	mov.u64 	%rd15, _Z21kConvolve_backward_myPfPKfS1_iiiiiiiiiiiii$__cuda_local_var_16876_35_non_const_shFilters;
 	add.s64 	%rd5, %rd15, %rd14;
 	mul.wide.s32 	%rd16, %r114, 4;
 	add.s64 	%rd4, %rd5, %rd16;
@@ -4276,9 +4279,9 @@ BB9_26:
 	.reg .b32 	%r<195>;
 	.reg .b64 	%rd<68>;
 	// demoted variable
-	.shared .align 4 .b8 _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters[32];
+	.shared .align 4 .b8 _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters[32];
 	// demoted variable
-	.shared .align 4 .b8 _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_32_non_const_shImages[4096];
+	.shared .align 4 .b8 _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17024_32_non_const_shImages[4096];
 
 	ld.param.u64 	%rd4, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii_param_0];
 	ld.param.u64 	%rd5, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii_param_1];
@@ -4348,7 +4351,7 @@ BB9_26:
 
 	shl.b32 	%r84, %r52, 3;
 	mul.wide.u32 	%rd7, %r84, 128;
-	mov.u64 	%rd8, _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_32_non_const_shImages;
+	mov.u64 	%rd8, _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17024_32_non_const_shImages;
 	add.s64 	%rd9, %rd8, %rd7;
 	mul.wide.u32 	%rd10, %r54, 4;
 	add.s64 	%rd3, %rd9, %rd10;
@@ -4386,7 +4389,7 @@ BB10_7:
 	add.s64 	%rd18, %rd16, %rd17;
 	ld.global.f32 	%f19, [%rd18];
 	mul.wide.s32 	%rd19, %r4, 4;
-	mov.u64 	%rd20, _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters;
+	mov.u64 	%rd20, _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters;
 	add.s64 	%rd21, %rd20, %rd19;
 	st.shared.f32 	[%rd21], %f19;
 	add.s32 	%r100, %r193, 1;
@@ -4401,7 +4404,7 @@ BB10_7:
 
 BB10_6:
 	mul.wide.s32 	%rd11, %r4, 4;
-	mov.u64 	%rd12, _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters;
+	mov.u64 	%rd12, _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters;
 	add.s64 	%rd13, %rd12, %rd11;
 	mov.u32 	%r95, 0;
 	st.shared.u32 	[%rd13], %r95;
@@ -4409,7 +4412,7 @@ BB10_6:
 
 BB10_8:
 	mul.wide.s32 	%rd26, %r4, 4;
-	mov.u64 	%rd27, _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters;
+	mov.u64 	%rd27, _Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters;
 	add.s64 	%rd28, %rd27, %rd26;
 	st.shared.f32 	[%rd28+16], %f51;
 
@@ -4671,28 +4674,28 @@ BB10_36:
 BB10_37:
 	bar.sync 	0;
 	ld.shared.f32 	%f28, [%rd3];
-	ld.shared.f32 	%f29, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters];
+	ld.shared.f32 	%f29, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters];
 	fma.rn.f32 	%f30, %f28, %f29, %f56;
 	ld.shared.f32 	%f31, [%rd3+128];
-	ld.shared.f32 	%f32, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters+4];
+	ld.shared.f32 	%f32, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters+4];
 	fma.rn.f32 	%f33, %f31, %f32, %f30;
 	ld.shared.f32 	%f34, [%rd3+256];
-	ld.shared.f32 	%f35, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters+8];
+	ld.shared.f32 	%f35, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters+8];
 	fma.rn.f32 	%f36, %f34, %f35, %f33;
 	ld.shared.f32 	%f37, [%rd3+384];
-	ld.shared.f32 	%f38, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters+12];
+	ld.shared.f32 	%f38, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters+12];
 	fma.rn.f32 	%f39, %f37, %f38, %f36;
 	ld.shared.f32 	%f40, [%rd3+512];
-	ld.shared.f32 	%f41, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters+16];
+	ld.shared.f32 	%f41, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters+16];
 	fma.rn.f32 	%f42, %f40, %f41, %f39;
 	ld.shared.f32 	%f43, [%rd3+640];
-	ld.shared.f32 	%f44, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters+20];
+	ld.shared.f32 	%f44, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters+20];
 	fma.rn.f32 	%f45, %f43, %f44, %f42;
 	ld.shared.f32 	%f46, [%rd3+768];
-	ld.shared.f32 	%f47, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters+24];
+	ld.shared.f32 	%f47, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters+24];
 	fma.rn.f32 	%f48, %f46, %f47, %f45;
 	ld.shared.f32 	%f49, [%rd3+896];
-	ld.shared.f32 	%f50, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17022_35_non_const_shFilters+28];
+	ld.shared.f32 	%f50, [_Z25kConvolve_forward_reversePfS_S_iiiiiiiiiiiiii$__cuda_local_var_17023_35_non_const_shFilters+28];
 	fma.rn.f32 	%f56, %f49, %f50, %f48;
 	bar.sync 	0;
 	add.s32 	%r194, %r194, 4;
@@ -4714,6 +4717,502 @@ BB10_39:
 	st.global.f32 	[%rd67], %f56;
 
 BB10_41:
+	ret;
+}
+
+	// .globl	_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif
+.visible .entry _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif(
+	.param .u64 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_0,
+	.param .u64 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_1,
+	.param .u64 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_2,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_3,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_4,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_5,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_6,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_7,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_8,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_9,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_10,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_11,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_12,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_13,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_14,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_15,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_16,
+	.param .u32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_17,
+	.param .f32 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_18
+)
+{
+	.reg .pred 	%p<33>;
+	.reg .f32 	%f<101>;
+	.reg .b32 	%r<208>;
+	.reg .b64 	%rd<64>;
+	// demoted variable
+	.shared .align 4 .b8 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17161_35_non_const_shImages[256];
+	// demoted variable
+	.shared .align 4 .b8 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17162_35_non_const_shHidActs[4];
+	// demoted variable
+	.shared .align 4 .b8 _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs[32];
+
+	ld.param.u64 	%rd8, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_1];
+	ld.param.u64 	%rd9, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_2];
+	ld.param.u32 	%r23, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_3];
+	ld.param.u32 	%r24, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_4];
+	ld.param.u32 	%r27, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_8];
+	ld.param.u32 	%r28, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_9];
+	ld.param.u32 	%r29, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_10];
+	ld.param.u32 	%r30, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_11];
+	ld.param.u32 	%r33, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_14];
+	ld.param.u32 	%r35, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_15];
+	ld.param.u32 	%r36, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_16];
+	ld.param.u32 	%r34, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_17];
+	mov.u32 	%r1, %tid.y;
+	mov.u32 	%r2, %tid.x;
+	mul.lo.s32 	%r3, %r30, %r30;
+	mul.lo.s32 	%r37, %r28, %r27;
+	mul.lo.s32 	%r38, %r37, %r29;
+	mov.u32 	%r39, %ctaid.x;
+	div.u32 	%r40, %r39, %r24;
+	mul.lo.s32 	%r206, %r40, %r34;
+	rem.u32 	%r41, %r39, %r24;
+	div.s32 	%r42, %r24, %r36;
+	div.s32 	%r43, %r41, %r42;
+	div.s32 	%r44, %r35, %r36;
+	shr.s32 	%r45, %r44, 31;
+	shr.u32 	%r46, %r45, 29;
+	add.s32 	%r47, %r44, %r46;
+	shr.s32 	%r48, %r47, 3;
+	mov.u32 	%r49, %ctaid.y;
+	div.u32 	%r50, %r49, %r48;
+	shl.b32 	%r5, %r50, 3;
+	rem.u32 	%r51, %r49, %r48;
+	shl.b32 	%r6, %r51, 3;
+	mad.lo.s32 	%r52, %r44, %r43, %r6;
+	mul.lo.s32 	%r53, %r38, %r33;
+	mul.lo.s32 	%r54, %r53, %r52;
+	cvt.s64.s32	%rd1, %r54;
+	or.b32  	%r55, %r2, %r1;
+	setp.ne.s32	%p1, %r55, 0;
+	@%p1 bra 	BB11_2;
+
+	div.s32 	%r56, %r5, %r3;
+	shl.b32 	%r57, %r56, 16;
+	div.s32 	%r58, %r5, %r30;
+	rem.s32 	%r59, %r58, %r30;
+	shl.b32 	%r60, %r59, 8;
+	add.s32 	%r61, %r60, %r57;
+	rem.s32 	%r62, %r5, %r30;
+	add.s32 	%r63, %r61, %r62;
+	st.shared.u32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs], %r63;
+	add.s32 	%r64, %r5, 1;
+	div.s32 	%r65, %r64, %r3;
+	shl.b32 	%r66, %r65, 16;
+	div.s32 	%r67, %r64, %r30;
+	rem.s32 	%r68, %r67, %r30;
+	shl.b32 	%r69, %r68, 8;
+	add.s32 	%r70, %r69, %r66;
+	rem.s32 	%r71, %r64, %r30;
+	add.s32 	%r72, %r70, %r71;
+	st.shared.u32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs+4], %r72;
+	add.s32 	%r73, %r5, 2;
+	div.s32 	%r74, %r73, %r3;
+	shl.b32 	%r75, %r74, 16;
+	div.s32 	%r76, %r73, %r30;
+	rem.s32 	%r77, %r76, %r30;
+	shl.b32 	%r78, %r77, 8;
+	add.s32 	%r79, %r78, %r75;
+	rem.s32 	%r80, %r73, %r30;
+	add.s32 	%r81, %r79, %r80;
+	st.shared.u32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs+8], %r81;
+	add.s32 	%r82, %r5, 3;
+	div.s32 	%r83, %r82, %r3;
+	shl.b32 	%r84, %r83, 16;
+	div.s32 	%r85, %r82, %r30;
+	rem.s32 	%r86, %r85, %r30;
+	shl.b32 	%r87, %r86, 8;
+	add.s32 	%r88, %r87, %r84;
+	rem.s32 	%r89, %r82, %r30;
+	add.s32 	%r90, %r88, %r89;
+	st.shared.u32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs+12], %r90;
+	add.s32 	%r91, %r5, 4;
+	div.s32 	%r92, %r91, %r3;
+	shl.b32 	%r93, %r92, 16;
+	div.s32 	%r94, %r91, %r30;
+	rem.s32 	%r95, %r94, %r30;
+	shl.b32 	%r96, %r95, 8;
+	add.s32 	%r97, %r96, %r93;
+	rem.s32 	%r98, %r91, %r30;
+	add.s32 	%r99, %r97, %r98;
+	st.shared.u32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs+16], %r99;
+	add.s32 	%r100, %r5, 5;
+	div.s32 	%r101, %r100, %r3;
+	shl.b32 	%r102, %r101, 16;
+	div.s32 	%r103, %r100, %r30;
+	rem.s32 	%r104, %r103, %r30;
+	shl.b32 	%r105, %r104, 8;
+	add.s32 	%r106, %r105, %r102;
+	rem.s32 	%r107, %r100, %r30;
+	add.s32 	%r108, %r106, %r107;
+	st.shared.u32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs+20], %r108;
+	add.s32 	%r109, %r5, 6;
+	div.s32 	%r110, %r109, %r3;
+	shl.b32 	%r111, %r110, 16;
+	div.s32 	%r112, %r109, %r30;
+	rem.s32 	%r113, %r112, %r30;
+	shl.b32 	%r114, %r113, 8;
+	add.s32 	%r115, %r114, %r111;
+	rem.s32 	%r116, %r109, %r30;
+	add.s32 	%r117, %r115, %r116;
+	st.shared.u32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs+24], %r117;
+	add.s32 	%r118, %r5, 7;
+	div.s32 	%r119, %r118, %r3;
+	shl.b32 	%r120, %r119, 16;
+	div.s32 	%r121, %r118, %r30;
+	rem.s32 	%r122, %r121, %r30;
+	shl.b32 	%r123, %r122, 8;
+	add.s32 	%r124, %r123, %r120;
+	rem.s32 	%r125, %r118, %r30;
+	add.s32 	%r126, %r124, %r125;
+	st.shared.u32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs+28], %r126;
+
+BB11_2:
+	bar.sync 	0;
+	mov.f32 	%f100, 0f00000000;
+	mov.f32 	%f99, %f100;
+	mov.f32 	%f98, %f100;
+	mov.f32 	%f97, %f100;
+	mov.f32 	%f96, %f100;
+	mov.f32 	%f95, %f100;
+	mov.f32 	%f94, %f100;
+	mov.f32 	%f93, %f100;
+	setp.lt.s32	%p2, %r34, 1;
+	@%p2 bra 	BB11_20;
+
+	shl.b32 	%r127, %r1, 4;
+	add.s32 	%r128, %r127, %r2;
+	shr.s32 	%r129, %r128, 31;
+	shr.u32 	%r130, %r129, 27;
+	add.s32 	%r131, %r128, %r130;
+	shr.s32 	%r132, %r131, 5;
+	cvta.to.global.u64 	%rd10, %rd9;
+	mul.lo.s32 	%r133, %r206, %r23;
+	mul.wide.s32 	%rd11, %r133, 4;
+	add.s64 	%rd63, %rd10, %rd11;
+	add.s32 	%r7, %r206, %r34;
+	add.s32 	%r8, %r132, %r5;
+	mul.wide.s32 	%rd12, %r132, 4;
+	mov.u64 	%rd13, _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17161_35_non_const_shImages;
+	add.s64 	%rd3, %rd13, %rd12;
+	mov.u64 	%rd14, _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17204_33_non_const_pxDivs;
+	add.s64 	%rd4, %rd14, %rd12;
+	mov.f32 	%f100, 0f00000000;
+	mov.f32 	%f99, %f100;
+	mov.f32 	%f98, %f100;
+	mov.f32 	%f97, %f100;
+	mov.f32 	%f96, %f100;
+	mov.f32 	%f95, %f100;
+	mov.f32 	%f94, %f100;
+	mov.f32 	%f93, %f100;
+
+BB11_4:
+	ld.param.u32 	%r205, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_12];
+	ld.param.u32 	%r204, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_13];
+	ld.param.u32 	%r203, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_6];
+	ld.param.u32 	%r202, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_7];
+	mul.lo.s32 	%r135, %r202, %r203;
+	div.s32 	%r136, %r206, %r135;
+	mad.lo.s32 	%r10, %r136, %r204, %r205;
+	div.s32 	%r137, %r206, %r202;
+	rem.s32 	%r138, %r137, %r203;
+	mad.lo.s32 	%r11, %r138, %r204, %r205;
+	rem.s32 	%r139, %r206, %r202;
+	mad.lo.s32 	%r12, %r139, %r204, %r205;
+	mov.u32 	%r207, 0;
+	setp.lt.s32	%p3, %r23, 1;
+	@%p3 bra 	BB11_19;
+
+BB11_5:
+	setp.gt.s32	%p4, %r128, 255;
+	@%p4 bra 	BB11_16;
+
+	mul.lo.s32 	%r145, %r3, %r30;
+	setp.lt.s32	%p5, %r8, %r145;
+	@%p5 bra 	BB11_8;
+	bra.uni 	BB11_7;
+
+BB11_8:
+	ld.shared.u32 	%r147, [%rd4];
+	bfe.u32 	%r148, %r147, 16, 8;
+	add.s32 	%r14, %r10, %r148;
+	bfe.u32 	%r149, %r147, 8, 8;
+	add.s32 	%r15, %r11, %r149;
+	and.b32  	%r150, %r147, 255;
+	add.s32 	%r16, %r12, %r150;
+	setp.gt.s32	%p6, %r14, -1;
+	setp.lt.s32	%p7, %r14, %r27;
+	and.pred  	%p8, %p6, %p7;
+	setp.gt.s32	%p9, %r15, -1;
+	and.pred  	%p10, %p8, %p9;
+	setp.lt.s32	%p11, %r15, %r28;
+	and.pred  	%p12, %p10, %p11;
+	setp.gt.s32	%p13, %r16, -1;
+	and.pred  	%p14, %p12, %p13;
+	setp.lt.s32	%p15, %r16, %r29;
+	and.pred  	%p16, %p14, %p15;
+	@%p16 bra 	BB11_10;
+	bra.uni 	BB11_9;
+
+BB11_10:
+	mad.lo.s32 	%r152, %r14, %r28, %r15;
+	mad.lo.s32 	%r153, %r152, %r29, %r16;
+	mad.lo.s32 	%r154, %r153, %r33, %r207;
+	cvt.s64.s32	%rd15, %r154;
+	add.s64 	%rd16, %rd15, %rd1;
+	cvta.to.global.u64 	%rd17, %rd8;
+	shl.b64 	%rd18, %rd16, 2;
+	add.s64 	%rd19, %rd17, %rd18;
+	ld.global.f32 	%f58, [%rd19];
+	st.shared.f32 	[%rd3], %f58;
+	mul.lo.s32 	%r155, %r33, %r29;
+	mul.lo.s32 	%r156, %r155, %r28;
+	mul.lo.s32 	%r157, %r156, %r27;
+	mul.wide.s32 	%rd20, %r157, 4;
+	add.s64 	%rd21, %rd19, %rd20;
+	ld.global.f32 	%f59, [%rd21];
+	st.shared.f32 	[%rd3+32], %f59;
+	add.s64 	%rd22, %rd21, %rd20;
+	ld.global.f32 	%f60, [%rd22];
+	st.shared.f32 	[%rd3+64], %f60;
+	add.s64 	%rd23, %rd22, %rd20;
+	ld.global.f32 	%f61, [%rd23];
+	st.shared.f32 	[%rd3+96], %f61;
+	add.s64 	%rd24, %rd23, %rd20;
+	ld.global.f32 	%f62, [%rd24];
+	st.shared.f32 	[%rd3+128], %f62;
+	add.s64 	%rd25, %rd24, %rd20;
+	ld.global.f32 	%f63, [%rd25];
+	st.shared.f32 	[%rd3+160], %f63;
+	add.s64 	%rd26, %rd25, %rd20;
+	ld.global.f32 	%f64, [%rd26];
+	st.shared.f32 	[%rd3+192], %f64;
+	add.s64 	%rd27, %rd26, %rd20;
+	ld.global.f32 	%f65, [%rd27];
+	st.shared.f32 	[%rd3+224], %f65;
+	bra.uni 	BB11_11;
+
+BB11_7:
+	mov.u32 	%r146, 0;
+	st.shared.u32 	[%rd3], %r146;
+	st.shared.u32 	[%rd3+32], %r146;
+	st.shared.u32 	[%rd3+64], %r146;
+	st.shared.u32 	[%rd3+96], %r146;
+	st.shared.u32 	[%rd3+128], %r146;
+	st.shared.u32 	[%rd3+160], %r146;
+	st.shared.u32 	[%rd3+192], %r146;
+	st.shared.u32 	[%rd3+224], %r146;
+	bra.uni 	BB11_11;
+
+BB11_9:
+	mov.u32 	%r151, 0;
+	st.shared.u32 	[%rd3], %r151;
+	st.shared.u32 	[%rd3+32], %r151;
+	st.shared.u32 	[%rd3+64], %r151;
+	st.shared.u32 	[%rd3+96], %r151;
+	st.shared.u32 	[%rd3+128], %r151;
+	st.shared.u32 	[%rd3+160], %r151;
+	st.shared.u32 	[%rd3+192], %r151;
+	st.shared.u32 	[%rd3+224], %r151;
+
+BB11_11:
+	mul.lo.s32 	%r187, %r3, %r30;
+	add.s32 	%r158, %r8, 4;
+	setp.lt.s32	%p17, %r158, %r187;
+	@%p17 bra 	BB11_13;
+	bra.uni 	BB11_12;
+
+BB11_13:
+	ld.shared.u32 	%r162, [%rd4+16];
+	bfe.u32 	%r163, %r162, 16, 8;
+	add.s32 	%r17, %r10, %r163;
+	bfe.u32 	%r164, %r162, 8, 8;
+	add.s32 	%r18, %r11, %r164;
+	and.b32  	%r165, %r162, 255;
+	add.s32 	%r19, %r12, %r165;
+	setp.gt.s32	%p18, %r17, -1;
+	setp.lt.s32	%p19, %r17, %r27;
+	and.pred  	%p20, %p18, %p19;
+	setp.gt.s32	%p21, %r18, -1;
+	and.pred  	%p22, %p20, %p21;
+	setp.lt.s32	%p23, %r18, %r28;
+	and.pred  	%p24, %p22, %p23;
+	setp.gt.s32	%p25, %r19, -1;
+	and.pred  	%p26, %p24, %p25;
+	setp.lt.s32	%p27, %r19, %r29;
+	and.pred  	%p28, %p26, %p27;
+	@%p28 bra 	BB11_15;
+	bra.uni 	BB11_14;
+
+BB11_15:
+	mad.lo.s32 	%r167, %r17, %r28, %r18;
+	mad.lo.s32 	%r168, %r167, %r29, %r19;
+	mad.lo.s32 	%r169, %r168, %r33, %r207;
+	cvt.s64.s32	%rd28, %r169;
+	add.s64 	%rd29, %rd28, %rd1;
+	cvta.to.global.u64 	%rd30, %rd8;
+	shl.b64 	%rd31, %rd29, 2;
+	add.s64 	%rd32, %rd30, %rd31;
+	ld.global.f32 	%f66, [%rd32];
+	st.shared.f32 	[%rd3+16], %f66;
+	mul.lo.s32 	%r170, %r33, %r29;
+	mul.lo.s32 	%r171, %r170, %r28;
+	mul.lo.s32 	%r172, %r171, %r27;
+	mul.wide.s32 	%rd33, %r172, 4;
+	add.s64 	%rd34, %rd32, %rd33;
+	ld.global.f32 	%f67, [%rd34];
+	st.shared.f32 	[%rd3+48], %f67;
+	add.s64 	%rd35, %rd34, %rd33;
+	ld.global.f32 	%f68, [%rd35];
+	st.shared.f32 	[%rd3+80], %f68;
+	add.s64 	%rd36, %rd35, %rd33;
+	ld.global.f32 	%f69, [%rd36];
+	st.shared.f32 	[%rd3+112], %f69;
+	add.s64 	%rd37, %rd36, %rd33;
+	ld.global.f32 	%f70, [%rd37];
+	st.shared.f32 	[%rd3+144], %f70;
+	add.s64 	%rd38, %rd37, %rd33;
+	ld.global.f32 	%f71, [%rd38];
+	st.shared.f32 	[%rd3+176], %f71;
+	add.s64 	%rd39, %rd38, %rd33;
+	ld.global.f32 	%f72, [%rd39];
+	st.shared.f32 	[%rd3+208], %f72;
+	add.s64 	%rd40, %rd39, %rd33;
+	ld.global.f32 	%f73, [%rd40];
+	st.shared.f32 	[%rd3+240], %f73;
+	bra.uni 	BB11_16;
+
+BB11_12:
+	mov.u32 	%r161, 0;
+	st.shared.u32 	[%rd3+16], %r161;
+	st.shared.u32 	[%rd3+48], %r161;
+	st.shared.u32 	[%rd3+80], %r161;
+	st.shared.u32 	[%rd3+112], %r161;
+	st.shared.u32 	[%rd3+144], %r161;
+	st.shared.u32 	[%rd3+176], %r161;
+	st.shared.u32 	[%rd3+208], %r161;
+	st.shared.u32 	[%rd3+240], %r161;
+	bra.uni 	BB11_16;
+
+BB11_14:
+	mov.u32 	%r166, 0;
+	st.shared.u32 	[%rd3+16], %r166;
+	st.shared.u32 	[%rd3+48], %r166;
+	st.shared.u32 	[%rd3+80], %r166;
+	st.shared.u32 	[%rd3+112], %r166;
+	st.shared.u32 	[%rd3+144], %r166;
+	st.shared.u32 	[%rd3+176], %r166;
+	st.shared.u32 	[%rd3+208], %r166;
+	st.shared.u32 	[%rd3+240], %r166;
+
+BB11_16:
+	setp.gt.s32	%p29, %r128, 1023;
+	@%p29 bra 	BB11_18;
+
+	mul.wide.s32 	%rd41, %r207, 4;
+	add.s64 	%rd42, %rd63, %rd41;
+	ldu.global.f32 	%f74, [%rd42];
+	st.shared.f32 	[_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17162_35_non_const_shHidActs], %f74;
+
+BB11_18:
+	bar.sync 	0;
+	mov.u64 	%rd61, _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17161_35_non_const_shImages;
+	mov.u32 	%r188, %tid.x;
+	mul.wide.u32 	%rd43, %r1, 4;
+	add.s64 	%rd45, %rd61, %rd43;
+	mul.wide.u32 	%rd46, %r188, 4;
+	mov.u64 	%rd47, _Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif$__cuda_local_var_17162_35_non_const_shHidActs;
+	add.s64 	%rd48, %rd47, %rd46;
+	ld.shared.f32 	%f75, [%rd48];
+	ld.shared.f32 	%f76, [%rd45];
+	fma.rn.f32 	%f100, %f76, %f75, %f100;
+	ld.shared.f32 	%f77, [%rd45+32];
+	fma.rn.f32 	%f99, %f77, %f75, %f99;
+	ld.shared.f32 	%f78, [%rd45+64];
+	fma.rn.f32 	%f98, %f78, %f75, %f98;
+	ld.shared.f32 	%f79, [%rd45+96];
+	fma.rn.f32 	%f97, %f79, %f75, %f97;
+	ld.shared.f32 	%f80, [%rd45+128];
+	fma.rn.f32 	%f96, %f80, %f75, %f96;
+	ld.shared.f32 	%f81, [%rd45+160];
+	fma.rn.f32 	%f95, %f81, %f75, %f95;
+	ld.shared.f32 	%f82, [%rd45+192];
+	fma.rn.f32 	%f94, %f82, %f75, %f94;
+	ld.shared.f32 	%f83, [%rd45+224];
+	fma.rn.f32 	%f93, %f83, %f75, %f93;
+	bar.sync 	0;
+	add.s32 	%r207, %r207, 1;
+	setp.lt.s32	%p30, %r207, %r23;
+	@%p30 bra 	BB11_5;
+
+BB11_19:
+	mul.wide.s32 	%rd49, %r23, 4;
+	add.s64 	%rd63, %rd63, %rd49;
+	add.s32 	%r206, %r206, 1;
+	setp.lt.s32	%p31, %r206, %r7;
+	@%p31 bra 	BB11_4;
+
+BB11_20:
+	ld.param.u32 	%r200, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_16];
+	ld.param.u32 	%r199, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_15];
+	div.s32 	%r198, %r199, %r200;
+	shr.s32 	%r197, %r198, 31;
+	shr.u32 	%r196, %r197, 29;
+	add.s32 	%r195, %r198, %r196;
+	shr.s32 	%r194, %r195, 3;
+	mov.u32 	%r193, %ctaid.y;
+	rem.u32 	%r192, %r193, %r194;
+	shl.b32 	%r191, %r192, 3;
+	div.u32 	%r190, %r193, %r194;
+	shl.b32 	%r189, %r190, 3;
+	add.s32 	%r179, %r189, %r1;
+	mul.lo.s32 	%r180, %r3, %r30;
+	mad.lo.s32 	%r22, %r191, %r180, %r179;
+	setp.ge.u32	%p32, %r179, %r180;
+	@%p32 bra 	BB11_22;
+
+	ld.param.u64 	%rd62, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_0];
+	ld.param.f32 	%f92, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_18];
+	ld.param.u32 	%r201, [_Z24kConvolve_weight_reversePfS_S_iiiiiiiiiiiiiiif_param_4];
+	mul.lo.s32 	%r183, %r22, %r201;
+	mul.f32 	%f84, %f100, %f92;
+	cvta.to.global.u64 	%rd50, %rd62;
+	mul.wide.u32 	%rd51, %r183, 4;
+	add.s64 	%rd52, %rd50, %rd51;
+	st.global.f32 	[%rd52], %f84;
+	mul.lo.s32 	%r186, %r180, %r201;
+	mul.wide.s32 	%rd53, %r186, 4;
+	add.s64 	%rd54, %rd52, %rd53;
+	mul.f32 	%f85, %f99, %f92;
+	st.global.f32 	[%rd54], %f85;
+	add.s64 	%rd55, %rd54, %rd53;
+	mul.f32 	%f86, %f98, %f92;
+	st.global.f32 	[%rd55], %f86;
+	add.s64 	%rd56, %rd55, %rd53;
+	mul.f32 	%f87, %f97, %f92;
+	st.global.f32 	[%rd56], %f87;
+	add.s64 	%rd57, %rd56, %rd53;
+	mul.f32 	%f88, %f96, %f92;
+	st.global.f32 	[%rd57], %f88;
+	add.s64 	%rd58, %rd57, %rd53;
+	mul.f32 	%f89, %f95, %f92;
+	st.global.f32 	[%rd58], %f89;
+	add.s64 	%rd59, %rd58, %rd53;
+	mul.f32 	%f90, %f94, %f92;
+	st.global.f32 	[%rd59], %f90;
+	add.s64 	%rd60, %rd59, %rd53;
+	mul.f32 	%f91, %f93, %f92;
+	st.global.f32 	[%rd60], %f91;
+
+BB11_22:
 	ret;
 }
 

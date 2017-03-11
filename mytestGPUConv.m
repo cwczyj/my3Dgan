@@ -1,4 +1,4 @@
-global kConv_forward_r kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forward_c kConv_weight kConv_weight_c kConv_backward_my;
+global kConv_forward_r kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forward_c kConv_weight kConv_weight_c kConv_backward_my kConv_weight_r;
 
 rng('shuffle');
 
@@ -86,7 +86,7 @@ if 0
     end
 end
 %% test kConv_forward_c;
-if 1
+if 0
     data=randi([1,10],[2,3,3,3,10],'single');
     kernel=randi([1,10],[32,2,2,2,10],'single');
     stride=1;
@@ -180,10 +180,10 @@ if 1
 end
 
 %% test kConv_weight_c
-if 0
-    data=rand(2,5,5,5,16);
-    kernel=rand(2,4,4,4,32);
-    stride=1;
+if 1
+    data=randi([1,10],2,5,5,5,16,'single');
+    kernel=randi([1,10],2,2,2,2,32,'single');
+    stride=2;
     numColors=size(data,5);
     kConv=kConv_weight_c;
     
@@ -205,42 +205,71 @@ if 0
         target, data, kernel,...
         numImages, numFilters, numModulesZ, numModulesY, numModulesX, imgSizeZ, imgSizeY, imgSizeX, ...
         filterSize, paddingStart, moduleStride, imgStride, numColors, numGroups, partialSum, scaleOutput);
-
+    toc
+    
     target = gather(target_gpu);
-    toc
     
+    % test kConv_weight_reverse
+    data1=data;
+    kernel1=kernel(:,:,:,:,1);
+    stride=2;
+    numColors=size(data1,5);
+    kConv1=kConv_weight_r;
     
-    tmpdata=zeros(size(data,2),size(data,3),size(data,4),size(data,1),size(data,5));
-    for i=1:size(data,1)
-        for j=1:size(data,5)
-            tmpdata(:,:,:,i,j)=data(i,:,:,:,j);
-        end
-    end
+    numImages = size(data1,1); imgSizeX = size(data1,2); imgSizeY = size(data1,3); imgSizeZ = size(data1,4);
+    numFilters = size(kernel1,5); numModulesX = size(kernel1,2); numModulesY = size(kernel1,3); numModulesZ = size(kernel1,4);
+    paddingStart = 0; moduleStride = stride; imgStride = numImages; partialSum = numModulesX * numModulesY * numModulesZ;
+    filterSize = imgSizeX - stride * (numModulesX - 1);
 
-    tmpkernel=zeros(size(kernel,2),size(kernel,3),size(kernel,4),size(kernel,1),size(kernel,5));
-    for j=1:size(kernel,1)
-        for k=1:size(kernel,5)
-            tmpkernel(:,:,:,j,k)=kernel(j,:,:,:,k);
-        end
-    end
+    preLoadCases = 32; filtersPerThread = 1; colorsPerThread = 8;
+    scaleOutput = 1; numGroups = 1;
+
+    kConv1.ThreadBlockSize = [1, 8];
+    kConv1.GridSize = [numFilters/filtersPerThread, ceil(filterSize^3 / 8) * (numColors / colorsPerThread)];
+
+    target1 = zeros(numFilters, filterSize, filterSize, filterSize, numColors, 'single');
     
-    MyConv=zeros(size(target,2),size(target,3),size(target,4),size(target,1),size(target,5));
     tic
-    for i=1:size(data,1)
-        for k=1:size(kernel,5)
-            for j=1:size(data,5)
-                MyConv(:,:,:,k,j)=MyConv(:,:,:,k,j)+my3dConv(tmpdata(:,:,:,i,j),tmpkernel(:,:,:,i,k),stride,paddingStart,'C');
-            end
-        end
-    end
+    target_gpu1 = feval(kConv1, ....
+        target1, data1, kernel1,...
+        numImages, numFilters, numModulesZ, numModulesY, numModulesX, imgSizeZ, imgSizeY, imgSizeX, ...
+        filterSize, paddingStart, moduleStride, imgStride, numColors, numGroups, partialSum, scaleOutput);
     toc
     
-    MyFinConv=zeros(size(target));
-    for i=1:size(target,1)
-        for j=1:size(target,5)
-           MyFinConv(i,:,:,:,j) = MyConv(:,:,:,i,j);
-        end
-    end
+    target1 = gather(target_gpu1);
+    % ~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+%     tmpdata=zeros(size(data,2),size(data,3),size(data,4),size(data,1),size(data,5));
+%     for i=1:size(data,1)
+%         for j=1:size(data,5)
+%             tmpdata(:,:,:,i,j)=data(i,:,:,:,j);
+%         end
+%     end
+% 
+%     tmpkernel=zeros(size(kernel,2),size(kernel,3),size(kernel,4),size(kernel,1),size(kernel,5));
+%     for j=1:size(kernel,1)
+%         for k=1:size(kernel,5)
+%             tmpkernel(:,:,:,j,k)=kernel(j,:,:,:,k);
+%         end
+%     end
+%     
+%     MyConv=zeros(size(target,2),size(target,3),size(target,4),size(target,1),size(target,5));
+%     tic
+%     for i=1:size(data,1)
+%         for k=1:size(kernel,5)
+%             for j=1:size(data,5)
+%                 MyConv(:,:,:,k,j)=MyConv(:,:,:,k,j)+my3dConv(tmpdata(:,:,:,i,j),tmpkernel(:,:,:,i,k),stride,paddingStart,'C');
+%             end
+%         end
+%     end
+%     toc
+%     
+%     MyFinConv=zeros(size(target));
+%     for i=1:size(target,1)
+%         for j=1:size(target,5)
+%            MyFinConv(i,:,:,:,j) = MyConv(:,:,:,i,j);
+%         end
+%     end
 end
 
 %% test kConv_weight
