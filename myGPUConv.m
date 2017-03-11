@@ -34,7 +34,7 @@ if strcmp(task,'forward')
                paddingStart, moduleStride, numModulesZ, numModulesY, numModulesX, imgStride);
            target(:,:,:,:,(b-1)*filter_batch_size+1 : b*filter_batch_size) = gather(target_gpu);
         end
-    else
+    elseif size(kernel,1) ~= 1
         numImages = size(data,1); imgSizeX = size(data,2); imgSizeY = size(data,3); imgSizeZ = size(data,4); 
         numFilters = size(kernel,1); filterSize =  size(kernel,2); 
         
@@ -52,6 +52,26 @@ if strcmp(task,'forward')
            target, data, kernel,...
            numImages, numFilters, imgSizeZ, imgSizeY, imgSizeX, filterSize, ...
            paddingStart, moduleStride, numModulesZ, numModulesY, numModulesX, imgStride, numColors, numGroups);
+
+        target = gather(target_gpu);
+    elseif size(kernel,1) == 1
+        numImages = size(data,1); imgSizeX = size(data,2); imgSizeY = size(data,3); imgSizeZ = size(data,4); 
+        numFilters = size(kernel,1); filterSize =  size(kernel,2); 
+
+        paddingStart = 0; moduleStride = stride; imgStride = numImages; numGroups = 1;
+        numModulesX = (imgSizeX - filterSize) / stride + 1; numModulesY = (imgSizeY - filterSize) / stride + 1; numModulesZ = (imgSizeZ - filterSize) / stride + 1;
+
+        filterPerThread = 1; imagePerThread = 1;
+
+        kConv.ThreadBlockSize = [32,4];
+        kConv.GridSize = [ceil(numImages/(32 * imagePerThread)),numModulesX * numModulesY * ceil(numModulesZ / 4)];
+
+        target = zeros(numImages, numModulesX, numModulesY, numModulesZ, numFilters, 'single');
+
+        target_gpu = feval(kConv,...
+            target, data, kernel,...
+            numImages, numFilters, imgSizeZ, imgSizeY, imgSizeX, filterSize, ...
+            paddingStart, moduleStride, numModulesZ, numModulesY, numModulesX, imgStride,numColors, numGroups);
 
         target = gather(target_gpu);
     end

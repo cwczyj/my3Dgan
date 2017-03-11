@@ -1118,7 +1118,7 @@ __global__ void kConvolve_weight_reverse(float* targets, float* images, float* h
     __shared__ float shHidActs[1][1]; // preload 32 cases of 32 hidacts
 
     const int tidx = 16 * threadIdx.y + threadIdx.x;
-    const int loadY = tidx / 32, loadX = tidx % 32;
+    const int loadY = tidx / 32 /*, loadX = tidx % 32*/;
 
     const int filterPixels = filterSize * filterSize * filterSize;
     const int imgPixels = imgSizeZ * imgSizeY * imgSizeX;
@@ -1245,3 +1245,123 @@ __global__ void kConvolve_weight_reverse(float* targets, float* images, float* h
     }
 }
 
+__global__ void kConvolve_backward_reverse(float* targets, const float* hidActs, const float* filters, 
+                                          const int numModulesZ, const int numModulesY, const int numModulesX, const int numImages, const int numFilters,
+                                          const int filterSize, const int imgSizeZ, const int imgSizeY, const int imgSizeX, const int paddingStart, const int moduleStride,
+                                          const int numImgColors, const int numGroups) {
+    __shared__ float shFilters[4*4][1]; // TODO: perhaps reconsider this 16
+    __shared__ float shHidActs[1][32*1];
+
+    const int numImgBlocks = DIVUP(numImages,32*1);
+    const int blockCaseIdx = (blockIdx.x % numImgBlocks) * 32 * 1;
+    
+    const int imgColorIdx = (blockIdx.x / numImgBlocks) * 4 * 4; //0; color idx globally
+    const int numFilterColors = numImgColors / numGroups;
+    //const int blockGroupIdx = imgColorIdx / numFilterColors;
+    const int filterColorIdx = imgColorIdx % numFilterColors; // color idx within group
+    const int numFiltersPerGroup = numFilters / numGroups;
+    //const int blockFilterIdx = blockGroupIdx * numFiltersPerGroup;
+
+    const int blockPixelIdx = blockIdx.y;
+    const int blockPixelIdxX = blockPixelIdx % imgSizeX;
+    const int blockPixelIdxY = (blockPixelIdx / imgSizeX) % imgSizeY;
+    const int blockPixelIdxZ = blockPixelIdx / (imgSizeX * imgSizeY);
+
+    const int filterPixels = filterSize * filterSize * filterSize;
+    const int imgPixels = imgSizeZ * imgSizeY * imgSizeX;
+    const int tidx = threadIdx.y * 32 + threadIdx.x;
+    const int /*hidActLoadY = tidx / 32,*/ hidActLoadX = tidx % 32;
+    const int filtersLoadY = tidx / 16 /*, filtersLoadX = tidx % 16*/;
+    const int numModules = numModulesZ * numModulesY * numModulesX;
+
+    hidActs += blockCaseIdx + hidActLoadX;
+    filters += (filterColorIdx + filtersLoadY) * filterPixels * numFilters;
+    targets += (imgColorIdx + threadIdx.y) * imgPixels * numImages + blockPixelIdx * numImages + blockCaseIdx + threadIdx.x;
+
+    float prod[4][1];
+    #pragma unroll
+    for (int c = 0; c < 4; c++) {
+        #pragma unroll
+        for (int i = 0; i < 1; i++) {
+            prod[c][i] = 0;
+        }
+    }
+    const int startZ = blockPixelIdxZ - paddingStart < filterSize ? 0
+                        : 1 + (blockPixelIdxZ - paddingStart - filterSize) / moduleStride;
+    const int endZ = MIN(numModulesZ, 1 + (blockPixelIdxZ - paddingStart) / moduleStride); 
+    const int startY = blockPixelIdxY - paddingStart < filterSize ? 0
+                        : 1 + (blockPixelIdxY - paddingStart - filterSize) / moduleStride;
+    const int endY = MIN(numModulesY, 1 + (blockPixelIdxY - paddingStart) / moduleStride);
+    const int startX = blockPixelIdxX - paddingStart < filterSize ? 0
+                        : 1 + (blockPixelIdxX - paddingStart - filterSize) / moduleStride;
+    const int endX = MIN(numModulesX, 1 + (blockPixelIdxX - paddingStart) / moduleStride);
+
+    float* shFilterLoad = &shFilters[filtersLoadY][0];
+    float* shHidActLoad = &shHidActs[0][hidActLoadX];
+    for (int mz = startZ; mz < endZ ; mz++){
+        const int moduleFront = paddingStart + mz * moduleStride;
+        const int pxInFilterZ = blockPixelIdxZ - moduleFront;
+
+        for (int my = startY; my < endY; my++) {
+            const int moduleTop = paddingStart + my * moduleStride;
+            const int pxInFilterY = blockPixelIdxY - moduleTop;
+
+            for (int mx = startX; mx < endX; mx++) {
+                const int moduleIdx = mz * numModulesX * numModulesY + my * numModulesX + mx;
+                const int moduleLeft = paddingStart + mx * moduleStride;
+                const int pxInFilterX = blockPixelIdxX - moduleLeft;
+                
+                const int pxIdxInFilter = pxInFilterZ * filterSize * filterSize + pxInFilterY * filterSize + pxInFilterX;
+
+                for (int f = 0; f < numFiltersPerGroup; f += 16) { // multiply with 16 filters at a time
+                    const float* hLoad = &hidActs[(moduleIdx + f * numModules) * numImages];
+                    #pragma unroll
+                    for (int i = 0; i < 1 * 32; i += 32) {
+                        if (!true || blockCaseIdx + hidActLoadX + i < numImages) {
+                            #pragma unroll
+                            for (int j = 0; j < 16; j += 32*16/32) { // load 16 rows of 1*16 cols, 8 * 32 elements at a time.
+                                shHidActLoad[j * 32 * 1 + i] = hLoad[j * numModules * numImages + i];
+                            }
+                        } else {
+                            #pragma unroll
+                            for (int j = 0; j < 16; j += 32*16/32) { // load 16 rows of 1*16 cols, 8 * 32 elements at a time.
+                                shHidActLoad[j * 32 * 1 + i] = 0;
+                            }
+                        }
+                    }
+                    const float* fLoad = true ? &filters[pxIdxInFilter * numFilters + f]
+                                              : &filters[moduleIdx * numFilterColors * filterPixels * numFilters + pxIdxInFilter * numFilters + f];
+                    #pragma unroll
+                    for (int i = 0; i < 4*4; i+= 32*4/16) {
+                        if ((4*4) % (32*4/16) == 0 || i + filtersLoadY < 4*4) {
+                            shFilterLoad[i] = fLoad[i * filterPixels * numFilters];
+                        }
+                    }
+                    
+                    __syncthreads();
+                    // Do some actual computation
+                    #pragma unroll
+                    for (int c = 0; c < 4; c++) {
+                        #pragma unroll
+                        for (int w = 0; w < 1; w++) {
+                            #pragma unroll
+                            for (int i = 0; i < 1; i++) {
+                                prod[c][i] += shFilters[c * 4 + threadIdx.y][w] * shHidActs[w][threadIdx.x + i * 32];
+                            }
+                        }
+                    }
+                    __syncthreads();
+                }
+            }
+        }
+    }
+    #pragma unroll
+    for (int i = 0; i < 1; i++) {
+        if (!true || blockCaseIdx + threadIdx.x + i * 32 < numImages) {
+            #pragma unroll
+            for (int c = 0; c < 4; c++) {
+                targets[c * 4 * imgPixels * numImages + i * 32] = prod[c][i];
+            }
+        }
+    }
+}

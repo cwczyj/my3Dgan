@@ -45,14 +45,14 @@ function D= my3dConv( A,B,stride,padding, T)
         %3D Transpose Convolution
             sizeC=(sizeA+sizeB)-1;
 
-            C=zeros(sizeC,sizeC,sizeC);
+            C=zeros(sizeC,sizeC,sizeC,'single');
 
             if sizeA>sizeB
 
                 for i=1:sizeC
                     if i<sizeB
                         for j=1:i
-                            C(:,:,i)=C(:,:,i)+conv2(A(:,:,j),B(:,:,j),'full');
+                            C(:,:,i)=C(:,:,i)+conv2(A(:,:,i-j+1),B(:,:,j),'full');
                         end
                     elseif i<sizeA
                         for j=1:sizeB
@@ -70,7 +70,7 @@ function D= my3dConv( A,B,stride,padding, T)
                 for i=1:sizeC
                     if i<sizeA
                         for j=1:i
-                            C(:,:,i)=C(:,:,i)+conv2(A(:,:,j),B(:,:,j),'full');
+                            C(:,:,i)=C(:,:,i)+conv2(A(:,:,i-j+1),B(:,:,j),'full');
                         end
                     elseif i<sizeB
                         for j=1:sizeA

@@ -1,4 +1,4 @@
-global kConv_forward_r kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forward_c kConv_weight kConv_weight_c kConv_backward_my kConv_weight_r;
+global kConv_forward_r kConv_backward kConv_forward2 kConv_backward_c kConv_forward kConv_forward_c kConv_weight kConv_weight_c kConv_backward_my kConv_weight_r kConv_backward_r;
 
 rng('shuffle');
 
@@ -180,7 +180,7 @@ if 0
 end
 
 %% test kConv_weight_c
-if 1
+if 0
     data=randi([1,10],2,5,5,5,16,'single');
     kernel=randi([1,10],2,2,2,2,32,'single');
     stride=2;
@@ -339,8 +339,8 @@ end
 
 %% test kConv_backward_c
 if 0
-    data=randi([1,10],32,2,2,2,16,'single');
-    kernel=randi([1,10],16,3,3,3,16,'single');
+    data=randi([1,10],32,5,5,5,16,'single');
+    kernel=randi([1,10],16,5,5,5,16,'single');
     stride=1;
     numColors=size(kernel,5);
     kConv=kConv_backward_c;
@@ -403,8 +403,8 @@ end
 
 %% test kConv_back
 if 0
-    data=rand(2,2,2,2,16,'single');
-    kernel=rand(16,3,3,3,'single');
+    data=randi([1,10],2,6,6,6,16,'single');
+    kernel=randi([1,10],16,5,5,5,'single');
     stride=1;
     numColors=size(kernel,5);
     kConv=kConv_backward;
@@ -462,9 +462,9 @@ if 0
 end
 
 %% test kConv_backward_my
-if 0
-    data=rand(25,4,4,4,512,'single');
-    kernel=rand(512,4,4,4,16,'single');
+if 1
+    data=randi([1,10],2,5,5,5,16,'single');
+    kernel=randi([1,10],16,4,4,4,32,'single');
     stride=1;
     numColors=size(kernel,5);
     kConv=kConv_backward_my;
@@ -504,4 +504,64 @@ if 0
     toc
     
     target1 = gather(target_gpu1);
+    
+    data2 = data(:,:,:,:,1);
+    kernel2 = kernel(1,:,:,:,:);
+    stride=1;
+    numColors=size(kernel2,5);
+    kConv2=kConv_backward_r;
+    
+    numImages = size(data2,1); numModulesX = size(data2,2); numModulesY = size(data2,3); numModulesZ = size(data2,4); moduleStride = stride;
+    numFilters = size(kernel2,1); filterSize = size(kernel2,2); 
+
+    imgSizeX = stride * (numModulesX - 1) + filterSize; imgSizeY = stride * (numModulesY - 1) + filterSize; imgSizeZ = stride * (numModulesZ - 1) + filterSize;
+    paddingStart = 0; numGroups = 1;
+    
+    colorsPerThread = 4; imgsPerThread = 1;
+    
+    kConv2.ThreadBlockSize = [32, 4];
+    kConv2.GridSize = [ceil(numImages/(imgsPerThread * 32)) * (numColors / (4 * colorsPerThread)), imgSizeZ * imgSizeY * imgSizeX];
+    
+    target2 = zeros(numImages, imgSizeX, imgSizeY, imgSizeZ, numColors, 'single');
+    
+    tic
+    target_gpu2 = feval(kConv2,....
+        target2, data2, kernel2,...
+        numModulesZ, numModulesY, numModulesX, numImages, numFilters, filterSize, ...
+        imgSizeZ, imgSizeY, imgSizeX, paddingStart, moduleStride, numColors, numGroups);
+    toc
+    
+    target2 = gather(target_gpu2);
+    
+    tmpdata=zeros(size(data2,2),size(data2,3),size(data2,4),size(data2,1),size(data2,5),'single');
+    for i=1:size(data2,1)
+        for j=1:size(data2,5)
+            tmpdata(:,:,:,i,j)=data2(i,:,:,:,j);
+        end
+    end
+
+    tmpkernel=zeros(size(kernel2,2),size(kernel2,3),size(kernel2,4),size(kernel2,1),size(kernel2,5),'single');
+    for j=1:size(kernel2,1)
+        for k=1:size(kernel2,5)
+            tmpkernel(:,:,:,j,k)=kernel2(j,:,:,:,k);
+        end
+    end
+    
+    MyConv = zeros(imgSizeZ,imgSizeX,imgSizeY,size(data2,1),size(kernel2,5),'single');
+    tic
+    for i=1:size(data2,1)
+        for j=1:size(data2,5)
+            for k=1:size(kernel2,5)
+                MyConv(:,:,:,i,k)=MyConv(:,:,:,i,k)+my3dConv(tmpdata(:,:,:,i,j),tmpkernel(:,:,:,j,k),stride,paddingStart,'T');
+            end
+        end
+    end
+    toc
+    
+    MyFinConv=zeros(size(target2),'single');
+    for i=1:size(target2,1)
+        for j=1:size(target2,5)
+           MyFinConv(i,:,:,:,j) = MyConv(:,:,:,i,j);
+        end
+    end
 end
