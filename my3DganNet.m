@@ -8,7 +8,7 @@ generator.layers = {
     struct('type', 'convolution', 'outputMaps', 128, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2,'padding',1);
     struct('type', 'convolution', 'outputMaps', 64, 'kernels', 4, 'actFun', 'ReLU', 'stride', 2,'padding',1);
     struct('type', 'convolution', 'outputMaps', 1, 'kernels', 4,'actFun', 'ReLU', 'stride', 2,'padding',1);
-    struct('type', 'output');
+    struct('type', 'output','padding',1);
 };
 generator.batchSize = 50;
 generator.lr = 5.0e-5;
@@ -23,7 +23,7 @@ discriminator.layers = {
     struct('type', 'convolution', 'outputMaps', 256, 'kernels', 4, 'actFun', 'LReLU', 'stride', 2,'padding',1);
     struct('type', 'convolution', 'outputMaps', 512, 'kernels', 4,'actFun', 'LReLU', 'stride', 2,'padding',1);
     struct('type', 'convolution', 'outputMaps', 1, 'kernels', 4, 'actFun', 'LReLU','stride', 1,'padding',0);
-    struct('type', 'output');
+    struct('type', 'output','padding',0);
 };
 discriminator.LeakyReLU = 0.2;
 discriminator.batchSize = 50;
@@ -61,7 +61,7 @@ GLoss = zeros(epoch,1);
 for x=0:epoch-1
 %    i=1;
     j=1;
-    
+
     for j=1:num
         shuffle_index = randperm(n);
         batch_list = shuffle_index(generator.batchSize+1:2*generator.batchSize);
@@ -73,15 +73,15 @@ for x=0:epoch-1
         rand_z = rand([50,200],'single');
         
         generator = myGenerator(generator,rand_z,'forward');
-        gen_output = generator.layers{4}.output{1};
+        gen_output = generator.layers{6}.output;
         
         discriminator = myDiscriminator(discriminator,batch,'forward','true');
-        disc_output_real = discriminator.layers{4}.output{1};
+        disc_output_real = discriminator.layers{6}.output;
         d_Loss = -1.*disc_output_real.^(-1);
         discriminator = myDiscriminator(discriminator,d_Loss,'backward','true');
         
         discriminator = myDiscriminator(discriminator,gen_output,'forward','true');
-        disc_output_G = discriminator.layers{4}.output{1};
+        disc_output_G = discriminator.layers{6}.output;
         d_gen_Loss = (1-disc_output_G).^(-1);
         discriminator = myDiscriminator(discriminator,d_gen_Loss,'backward','true');
         
@@ -93,19 +93,20 @@ for x=0:epoch-1
     
     fprintf('\n');
     
-    rand_z = rand([200,5],'single');
+    rand_z = rand([50,200],'single');
     generator = myGenerator(generator,rand_z,'forward');
-    gen_output_2 = generator.layers{4}.output{1};
+    gen_output_2 = generator.layers{6}.output;
     
     discriminator = myDiscriminator(discriminator,gen_output_2,'forward','true');
-    disc_output_G = discriminator.layers{4}.output{1};
+    disc_output_G = discriminator.layers{6}.output;
     tmp = log(1-disc_output_G);
     GLoss(x+1)=mean(tmp(:));
+    fprintf('GLoss in G is %f\n',GLoss(x+1));
     
     d_gen_Loss = -1.*(1-disc_output_G).^(-1);
     
     discriminator = myDiscriminator(discriminator,d_gen_Loss,'backward','false');
-    gen_Loss = discriminator.layers{1}.dinput{1};
+    gen_Loss = discriminator.layers{1}.dinput;
     
     generator = myGenerator(generator,gen_Loss,'backward');
     fprintf('finished the G network %f\n',GLoss(x+1));

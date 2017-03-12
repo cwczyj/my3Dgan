@@ -44,7 +44,7 @@ function [output,dlamda,dbeta]= my3DBatchNormalization(A, lamda, beta, forward_o
         
         dbeta=sum(Loss(:));
         
-        output=di1+di2+1/size(A,1)*repmat(d_mu,1,1,1,size(A,1));
+        output=di1+di2+1/size(A,1)*repmat(d_mu,size(A,1),1,1,1);
     end
 
 end

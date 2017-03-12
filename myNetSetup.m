@@ -14,8 +14,8 @@ function [ net ] = myNetSetup( net , fanin)
             %(Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification)
             net.layers{i}.w=normrnd(0,Guass_std,[fan_in, net.layers{i}.kernels^3, net.layers{i}.outputMaps]);
             net.layers{i}.w=single(net.layers{i}.w);
-            net.layers{i}.dw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps],'single');
-            net.layers{i}.histdw=zeros([net.layers{i}.kernels^3, fan_in, net.layers{i}.outputMaps],'single');
+            net.layers{i}.dw=zeros([fan_in,net.layers{i}.kernels^3,  net.layers{i}.outputMaps],'single');
+            net.layers{i}.histdw=zeros([fan_in,net.layers{i}.kernels^3,  net.layers{i}.outputMaps],'single');
         elseif strcmp(net.layers{i}.type,'convolution')
             net.layers{i}.w=normrnd(0,Guass_std,[fan_in,net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
                 fan_out]);
