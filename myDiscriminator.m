@@ -54,25 +54,29 @@ if strcmp(forward_or_backward,'forward')
                     tmpin = zeros(end_num-start_num,size(tmp,2),size(tmp,3),size(tmp,4),...
                         size(tmp,5),'single');         
                     for tmp_batch = start_num:end_num
-                        tmpin(tmp_batch,:,:,:,:)=tmp((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:);
+                        tmpin(tmp_batch - (tmp_x-1) * batchSizeForCompute,:,:,:,:)=tmp(tmp_batch,:,:,:,:);
                     end
                     
-                    tmpout = zeros(end_num-start_num,size(net.layers{i}.ReLUtmpin,2),size(net.layers{i}.ReLUtmpin,3),...
-                        size(net.layers{i}.ReLUtmpin,4),size(net.layers{i}.ReLUtmpin,5),'single');
+                    tmpout = zeros(end_num-start_num,size(net.layers{i}.ReLUin,2),size(net.layers{i}.ReLUin,3),...
+                        size(net.layers{i}.ReLUin,4),size(net.layers{i}.ReLUin,5),'single');
                     tmpout = myGPUConv(kConv,tmpin,net.layers{i}.w,net.layers{i}.stride,'forward');
 
                     for tmp_batch = start_num:end_num
-                        net.layers{i}.ReLUin((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:) = tmpout(tmp_batch,:,:,:,:);
+                        net.layers{i}.ReLUin(tmp_batch,:,:,:,:) = tmpout(tmp_batch - (tmp_x-1) * batchSizeForCompute,:,:,:,:);
                     end
                 end
             else
                 net.layers{i}.ReLUin = myGPUConv(kConv,tmp,net.layers{i}.w,net.layers{i}.stride,'forward');
             end
+            
             if net.layers{i}.outputMaps ~= 1
                 net.layers{i}.ReLUout = zeros(size(net.layers{i}.ReLUin),'single');
                 net.layers{i + 1}.input = zeros(size(net.layers{i}.ReLUout),'single');
                 for j = 1:net.layers{i}.outputMaps
                 
+%                     net.layers{i}.ReLUout(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+%                         net.layers{i}.beta(j,1),'forward',0);
+%                     net.layers{i+1}.input(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUout(:,:,:,:,j),lReLU_rate,'forward',0);
                     net.layers{i}.ReLUout(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUin(:,:,:,:,j),lReLU_rate,'forward',0);
                     net.layers{i+1}.input(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
                         net.layers{i}.beta(j,1),'forward',0);
@@ -84,9 +88,9 @@ if strcmp(forward_or_backward,'forward')
             net.layers{i}.output = zeros(size(net.layers{i}.input),'single');
             net.layers{i}.output = mySigmoidFun(net.layers{i}.input,'forward',0);
         end
-        fprintf('finished on %dth forward loop in discriminator %s\n',i,datestr(now,13));
+        
     end
-    
+    fprintf('finished forward loop in discriminator %s\n',datestr(now,13));
 elseif strcmp(forward_or_backward,'backward')
     %% for Discriminator bp, but when update is false, don't update weights of the network
     
@@ -103,10 +107,16 @@ elseif strcmp(forward_or_backward,'backward')
                 net.layers{i}.dReLU = zeros(size(net.layers{i+1}.dinput),'single');
 
                 for j=1:net.layers{i}.outputMaps
+%                     net.layers{i}.dBN(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUout(:,:,:,:,j),lReLU_rate,'backward',net.layers{i+1}.dinput(:,:,:,:,j));
+%                     
+%                     [net.layers{i}.dReLU(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
+%                         my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+%                         net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j));
+
                     [net.layers{i}.dBN(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
                         my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
                         net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput(:,:,:,:,j));
-
+                    
                     net.layers{i}.dReLU(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUin(:,:,:,:,j),lReLU_rate,'backward',net.layers{i}.dBN(:,:,:,:,j));
                 end
             else
@@ -140,15 +150,13 @@ elseif strcmp(forward_or_backward,'backward')
                     tmpin = zeros(end_num-start_num,size(net.layers{i}.dReLU,2),size(net.layers{i}.dReLU,3),...
                         size(net.layers{i}.dReLU,4),size(net.layers{i}.dReLU,5),'single');                
                     for tmp_batch = start_num:end_num
-                        tmpin(tmp_batch,:,:,:,:)=net.layers{i}.dReLU((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:);
+                        tmpin(tmp_batch-(tmp_x-1) * batchSizeForCompute,:,:,:,:)=net.layers{i}.dReLU(tmp_batch,:,:,:,:);
                     end
                     
-                    tmpout = zeros(end_num-start_num,size(net.layers{i}.ReLUtmpin,2),size(net.layers{i}.ReLUtmpin,3),...
-                        size(net.layers{i}.ReLUtmpin,4),size(net.layers{i}.ReLUtmpin,5),'single');
                     tmpout = myGPUConv(kConv,tmpin,net.layers{i}.w,net.layers{i}.stride,'backward');
 
                     for tmp_batch = start_num:end_num
-                        tmp((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:) = tmpout(tmp_batch,:,:,:,:);
+                        tmp(tmp_batch,:,:,:,:) = tmpout(tmp_batch - (tmp_x-1) * batchSizeForCompute,:,:,:,:);
                     end
                 end
             else
@@ -159,7 +167,7 @@ elseif strcmp(forward_or_backward,'backward')
             net.layers{i}.dinput = tmp(:,1 + net.layers{i}.padding:end - net.layers{i}.padding,1 + net.layers{i}.padding:end - net.layers{i}.padding,...
                 1 + net.layers{i}.padding:end - net.layers{i}.padding,:);
             
-            fprintf('finished %dth backpropagation loop for dx in discriminator %s\n',i,datestr(now,13));
+            %fprintf('finished %dth backpropagation loop for dx in discriminator %s\n',i,datestr(now,13));
             
             % compute dw
             if strcmp(update,'true')
@@ -190,18 +198,16 @@ elseif strcmp(forward_or_backward,'backward')
                             end_num = tmp_x * batchSizeForCompute;
                         end
                         
-                        tmpdin = zeros(end_num-start_num,size(net.layers{i}.dinput,2),size(net.layers{i}.dinput,3),...
-                            size(net.layers{i}.dinput,4),size(net.layers{i}.dinput,5),'single');
-                        tmpin = zeros(end_num-start_num,size(net.layers{i}.input,2),size(net.layers{i}.input,3),...
-                            size(net.layers{i}.input,4),...
-                            size(net.layers{i}.input,5),'single');
+                        tmpdin = zeros(end_num-start_num,size(net.layers{i+1}.dinput,2),size(net.layers{i+1}.dinput,3),...
+                            size(net.layers{i+1}.dinput,4),size(net.layers{i+1}.dinput,5),'single');
+                        tmpin = zeros(end_num-start_num,size(tmp,2),size(tmp,3),...
+                            size(tmp,4),...
+                            size(tmp,5),'single');
                         for tmp_batch = start_num:end_num
-                            tmpdin(tmp_batch,:,:,:,:) = tmp((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:);
-                            tmpin(tmp_batch,:,:,:,:) = net.layers{i}.input((tmp_x-1) * batchSizeForCompute + tmp_batch,:,:,:,:);
+                            tmpin(tmp_batch - (tmp_x-1) * batchSizeForCompute,:,:,:,:) = tmp(tmp_batch,:,:,:,:);
+                            tmpdin(tmp_batch - (tmp_x-1) * batchSizeForCompute,:,:,:,:) = net.layers{i+1}.dinput(tmp_batch,:,:,:,:);
                         end
-                        
-                        tmpout = zeros(end_num-start_num,size(net.layers{i}.dw,2),size(net.layers{i}.dw,3),size(net.layers{i}.dw,4),...
-                            size(net.layers{i}.dw,5),'single');  
+                         
                         tmpout = myGPUConv(kConv_w,tmpin,tmpdin,net.layers{i}.stride,'weight');
                         
                         net.layers{i}.dw =net.layers{i}.dw + tmpout;
@@ -210,7 +216,7 @@ elseif strcmp(forward_or_backward,'backward')
                     net.layers{i}.dw = myGPUConv(kConv_w,tmp,net.layers{i+1}.dinput,net.layers{i}.stride,'weight');
                 end
                 
-                fprintf('finished %dth backpropagation loop for dw in discriminator %s\n',i,datestr(now,13));
+                %fprintf('finished %dth backpropagation loop for dw in discriminator %s\n',i,datestr(now,13));
             end
         elseif strcmp(net.layers{i}.type,'output')
             net.layers{i}.dinput = zeros(size(net.layers{i}.input),'single');
@@ -233,9 +239,8 @@ elseif strcmp(forward_or_backward,'backward')
                 net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1)-BN_lr.*net.layers{i}.dbeta(j,1);
             end
         end
-    end
-    
-    fprintf('finished a gradient calculate procedure in discriminator %s\n',datestr(now,13));    
+        fprintf('finished a gradient calculate procedure in discriminator %s\n',datestr(now,13)); 
+    end    
 end
     y=net;
 end
