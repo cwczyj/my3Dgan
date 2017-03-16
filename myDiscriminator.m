@@ -74,12 +74,12 @@ if strcmp(forward_or_backward,'forward')
                 net.layers{i + 1}.input = zeros(size(net.layers{i}.ReLUout),'single');
                 for j = 1:net.layers{i}.outputMaps
                 
-%                     net.layers{i}.ReLUout(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-%                         net.layers{i}.beta(j,1),'forward',0);
-%                     net.layers{i+1}.input(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUout(:,:,:,:,j),lReLU_rate,'forward',0);
-                    net.layers{i}.ReLUout(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUin(:,:,:,:,j),lReLU_rate,'forward',0);
-                    net.layers{i+1}.input(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+                    net.layers{i}.ReLUout(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
                         net.layers{i}.beta(j,1),'forward',0);
+                    net.layers{i+1}.input(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUout(:,:,:,:,j),lReLU_rate,'forward',0);
+%                     net.layers{i}.ReLUout(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUin(:,:,:,:,j),lReLU_rate,'forward',0);
+%                     net.layers{i+1}.input(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+%                         net.layers{i}.beta(j,1),'forward',0);
                 end
             else
                 net.layers{i+1}.input = net.layers{i}.ReLUin;
@@ -107,17 +107,17 @@ elseif strcmp(forward_or_backward,'backward')
                 net.layers{i}.dReLU = zeros(size(net.layers{i+1}.dinput),'single');
 
                 for j=1:net.layers{i}.outputMaps
-%                     net.layers{i}.dBN(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUout(:,:,:,:,j),lReLU_rate,'backward',net.layers{i+1}.dinput(:,:,:,:,j));
-%                     
-%                     [net.layers{i}.dReLU(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
-%                         my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-%                         net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j));
-
-                    [net.layers{i}.dBN(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
-                        my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-                        net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput(:,:,:,:,j));
+                    net.layers{i}.dBN(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUout(:,:,:,:,j),lReLU_rate,'backward',net.layers{i+1}.dinput(:,:,:,:,j));
                     
-                    net.layers{i}.dReLU(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUin(:,:,:,:,j),lReLU_rate,'backward',net.layers{i}.dBN(:,:,:,:,j));
+                    [net.layers{i}.dReLU(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
+                        my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+                        net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j));
+
+%                     [net.layers{i}.dBN(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
+%                         my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+%                         net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput(:,:,:,:,j));
+%                     
+%                     net.layers{i}.dReLU(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUin(:,:,:,:,j),lReLU_rate,'backward',net.layers{i}.dBN(:,:,:,:,j));
                 end
             else
                 net.layers{i}.dReLU = net.layers{i + 1}.dinput;
@@ -227,12 +227,14 @@ elseif strcmp(forward_or_backward,'backward')
     %calc gradient for every weigths by using Nesterov momentum algorithm
     if strcmp(update,'true')
         momentum = net.momentum;
+        momentum2 = net.momentum2;
         lr = net.lr;
         BN_lr = net.BNlr;
         for i=1:(numel(net.layers)-1)
             %ascending the discriminator loss
+            net.layers{i}.histdw2 = momentum2 * net.layers{i}.histdw2 + (1-momentum2).*net.layers{i}.dw;
             net.layers{i}.histdw = momentum * net.layers{i}.histdw + (1-momentum).*net.layers{i}.dw.^2;
-            net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.dw)./(sqrt(net.layers{i}.histdw)+1.0e-8);
+            net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.histdw2)./(sqrt(net.layers{i}.histdw)+1.0e-8);
             
             for j=1:net.layers{i}.outputMaps
                 net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1)-BN_lr.*net.layers{i}.dlamda(j,1);

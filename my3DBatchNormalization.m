@@ -8,11 +8,12 @@ function [output,dlamda,dbeta]= my3DBatchNormalization(A, lamda, beta, forward_o
     epsilon = 1e-4;
 
     %compute the mean of the batch of Input 3D matrix;
-    mu = mean(A,1);
+    mu = mean(A(:));
 
     %compute the variance of the batch of Input 3D matrix;
     x_mu = bsxfun(@minus,A,mu);
-    x_sigma2 = mean(x_mu.^2,1);
+    tmp = x_mu.^2;
+    x_sigma2 = mean(tmp(:));
     norm_factor = lamda./sqrt(x_sigma2+epsilon);
 
     %nomalize the data of the batch of the input 3D matix;
@@ -29,11 +30,12 @@ function [output,dlamda,dbeta]= my3DBatchNormalization(A, lamda, beta, forward_o
         d_hat = bsxfun(@times,Loss,lamda);
         % a 4-D matrix;
         inv_sqrt_sigma = 1./sqrt(x_sigma2+epsilon);
-        d_sigam2 = -0.5*sum((d_hat.*x_mu),1).*(inv_sqrt_sigma.^3);
+        tmp = (d_hat.*x_mu);
+        d_sigam2 = -0.5*sum(tmp(:)).*(inv_sqrt_sigma.^3);
         
         %compute the derivation of means;
         d_mu = bsxfun(@times,d_hat,inv_sqrt_sigma);
-        d_mu = -1 * sum(d_mu,1)-2.*d_sigam2.*mean(x_mu,1);
+        d_mu = -1 * sum(d_mu(:))-2.*d_sigam2.*mean(x_mu(:));
         
         %compute the derivation of input x;dx is a 4-D matrix;
         di1 = bsxfun(@times,d_hat,inv_sqrt_sigma);

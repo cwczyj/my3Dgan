@@ -16,6 +16,7 @@ function [ net ] = myNetSetup( net , fanin)
             net.layers{i}.w=single(net.layers{i}.w);
             net.layers{i}.dw=zeros([fan_in,net.layers{i}.kernels^3,  net.layers{i}.outputMaps],'single');
             net.layers{i}.histdw=zeros([fan_in,net.layers{i}.kernels^3,  net.layers{i}.outputMaps],'single');
+            net.layers{i}.histdw2=zeros([fan_in,net.layers{i}.kernels^3,  net.layers{i}.outputMaps],'single');
         elseif strcmp(net.layers{i}.type,'convolution')
             net.layers{i}.w=normrnd(0,Guass_std,[fan_in,net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
                 fan_out]);
@@ -23,6 +24,8 @@ function [ net ] = myNetSetup( net , fanin)
             net.layers{i}.dw=zeros([fan_in,net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
                 fan_out],'single');
             net.layers{i}.histdw=zeros([fan_in,net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
+                fan_out],'single');
+            net.layers{i}.histdw2=zeros([fan_in,net.layers{i}.kernels, net.layers{i}.kernels, net.layers{i}.kernels,...
                 fan_out],'single');
         end
         %lamda and beta for Batch Normalization layer;

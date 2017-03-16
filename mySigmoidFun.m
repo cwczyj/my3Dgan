@@ -10,8 +10,8 @@ function [ output ] = mySigmoidFun( A , forward_or_backward,Loss)
         output=Loss.*(tmp.*(1-tmp));
     end
 
-    function X=sigmoid(X)
-        X=1./(1+exp(-1.*X));
+    function out=sigmoid(X)
+        out=1./(1+exp(-1.*X));
     end
 
 end
