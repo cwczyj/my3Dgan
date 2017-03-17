@@ -39,14 +39,15 @@ function [output,dlamda,dbeta]= my3DBatchNormalization(A, lamda, beta, forward_o
         
         %compute the derivation of input x;dx is a 4-D matrix;
         di1 = bsxfun(@times,d_hat,inv_sqrt_sigma);
-        di2 = 2/size(A,1) * bsxfun(@times,d_sigam2,x_mu);
+        di2 = 2/(size(A,1)*size(A,2)*size(A,3)*size(A,4)) * bsxfun(@times,d_sigam2,x_mu);
         
-        tmp = (Loss.*x_hat);
+        tmpX_hat = bsxfun(@times,x_mu,inv_sqrt_sigma);
+        tmp = (Loss.*tmpX_hat);
         dlamda=sum(tmp(:));
         
         dbeta=sum(Loss(:));
         
-        output=di1+di2+1/size(A,1)*repmat(d_mu,size(A,1),1,1,1);
+        output=di1+di2+1/(size(A,1)*size(A,2)*size(A,3)*size(A,4))*repmat(d_mu,size(A,1),size(A,2),size(A,3),size(A,4));
     end
 
 end

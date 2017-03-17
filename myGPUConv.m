@@ -90,7 +90,7 @@ function target = myGPUConv(kConv, data, kernel, stride, task)
             paddingStart = 0; moduleStride = stride; imgStride = numImages; partialSum = numModulesX * numModulesY * numModulesZ;
             filterSize = imgSizeX - stride * (numModulesX - 1);
 
-            pixelsPerThread = 5; preLoadCases = 32; scaleOutput = 1;
+            pixelsPerThread = 5; preLoadCases = 32; scaleOutput = 1;%./ (numImages * partialSum);
 
             kConv.ThreadBlockSize = [16, 8];
             kConv.GridSize = [numFilters*numModulesX*numModulesY*numModulesZ/partialSum/16, ceil(filterSize^3 /(8*pixelsPerThread))];
