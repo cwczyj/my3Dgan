@@ -44,8 +44,6 @@ if 0
 else
     load 'generator_parameters.mat';
     load 'discriminator_parameters.mat';
-    
-    discriminator.lr = 1.0e-5;
 end
 %read batch data
 
@@ -72,7 +70,7 @@ for x=0:epoch-1
     shuffle_index = randperm(n);
     for j=1:num
 
-        if abs(mean(d_Loss_fake) - mean(d_Loss_real)) >=0.6 && mean(d_Loss_real) >=0.8
+        if abs(mean(d_Loss_fake) - mean(d_Loss_real)) >=0.5 && mean(d_Loss_real) >=0.75
             fprintf('\n d_Loss_real is %f and d_Loss_fake is %f\n  break!!!!!!!! \n',...
                 mean(d_Loss_real),mean(d_Loss_fake));
             break;
@@ -89,37 +87,39 @@ for x=0:epoch-1
         generator = myGenerator(generator,rand_z,'forward');
         gen_output = generator.layers{6}.output;
         
-%         discriminator_input = myConcatenate(batch, gen_output);
-%         
-%         discriminator = myDiscriminator(discriminator, discriminator_input, 'forward', 'true');
-%         d_Loss_real = discriminator.layers{6}.output(1:size(batch,1),:);
-%         d_Loss_real_tmp = -1.*d_Loss_real.^(-1);
-%         d_Loss_fake = discriminator.layers{6}.output(size(batch,1)+1:end,:);
-%         d_Loss_fake_tmp = (1-d_Loss_fake).^(-1);
-%         d_mean = d_Loss_real_tmp + d_Loss_fake_tmp;
-%         back_loss = mean(d_mean,1).*ones(size(discriminator.layers{6}.output),'single');
-%         discriminator = myDiscriminator(discriminator, back_loss, 'backward', 'true');
+        if 0
         
-        discriminator = myDiscriminator(discriminator,batch,'forward','true');
-        d_Loss_real = discriminator.layers{6}.output;
-        d_Loss_real_tmp = -1.*(d_Loss_real.^(-1));
-        d_Loss = mean(d_Loss_real_tmp,1).*ones(size(d_Loss_real),'single');
+            discriminator_input = myConcatenate(batch, gen_output);
+            discriminator = myDiscriminator(discriminator, discriminator_input, 'forward', 'true');
+            d_Loss_real = discriminator.layers{6}.output(1:size(batch,1),:);
+            d_Loss_real_tmp = -1.*d_Loss_real.^(-1);
+            d_Loss_fake = discriminator.layers{6}.output(size(batch,1)+1:end,:);
+            d_Loss_fake_tmp = (1-d_Loss_fake).^(-1);
+            d_mean = d_Loss_real_tmp + d_Loss_fake_tmp;
+            back_loss = mean(d_mean,1).*ones(size(discriminator.layers{6}.output),'single');
+            discriminator = myDiscriminator(discriminator, back_loss, 'backward', 'true');
+        
+        else
+        
+            discriminator = myDiscriminator(discriminator,batch,'forward','true');
+            d_Loss_real = discriminator.layers{6}.output;
+            d_Loss_real_tmp = -1.*(d_Loss_real.^(-1));
+            d_Loss = mean(d_Loss_real_tmp,1).*ones(size(d_Loss_real),'single');
+            discriminator = myDiscriminator(discriminator,d_Loss,'backward','true','true'); 
+
+            discriminator = myDiscriminator(discriminator,gen_output,'forward','true');
+            d_Loss_fake = discriminator.layers{6}.output;
+            d_Loss_fake_tmp = (1-d_Loss_fake).^(-1);
+            d_gen_Loss = mean(d_Loss_fake_tmp,1).*ones(size(d_Loss_fake),'single');
+            discriminator = myDiscriminator(discriminator,d_gen_Loss,'backward','true','false');
+        
+        end
         
         tmp = log(d_Loss_real);
         Loss_D(end + 1,1) = mean(tmp(:));
-        
-        discriminator = myDiscriminator(discriminator,d_Loss,'backward','true');           
-   
-        discriminator = myDiscriminator(discriminator,gen_output,'forward','true');
-        d_Loss_fake = discriminator.layers{6}.output;
-        d_Loss_fake_tmp = (1-d_Loss_fake).^(-1);
-        d_gen_Loss = mean(d_Loss_fake_tmp,1).*ones(size(d_Loss_fake),'single');
-        
         tmp = log(1-d_Loss_fake);
         Loss_G(end + 1,1) = mean(tmp(:));
-        
-        discriminator = myDiscriminator(discriminator,d_gen_Loss,'backward','true');
-        
+
         tmp = log(d_Loss_real) + log(1-d_Loss_fake);
         Loss(end + 1,1) = mean(tmp(:));
                 
@@ -135,14 +135,14 @@ for x=0:epoch-1
         gen_output_2 = generator.layers{6}.output;
 
         discriminator = myDiscriminator(discriminator,gen_output_2,'forward','true');
-        disc_output_G = discriminator.layers{6}.output;
-        tmp = log(1-disc_output_G);
+        d_Loss_fake = discriminator.layers{6}.output;
+        tmp = log(1-d_Loss_fake);
         Loss_G(end + 1,1)=mean(tmp(:));
 
-        d_gen_Loss_tmp = -1.*(1-disc_output_G).^(-1);
-        d_gen_Loss = mean(d_gen_Loss_tmp,1).*ones(size(d_gen_Loss_tmp),'single');
+        d_gen_Loss_tmp = -1.*(1-d_Loss_fake).^(-1);
+        d_gen_Loss = mean(d_gen_Loss_tmp,1).*ones(size(d_Loss_fake),'single');
 
-        discriminator = myDiscriminator(discriminator,d_gen_Loss,'backward','false');
+        discriminator = myDiscriminator(discriminator,d_gen_Loss,'backward','false','false');
         gen_Loss = discriminator.layers{1}.dinput;
 
         generator = myGenerator(generator,gen_Loss,'backward');

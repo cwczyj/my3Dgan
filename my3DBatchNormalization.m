@@ -5,7 +5,7 @@ function [output,dlamda,dbeta]= my3DBatchNormalization(A, lamda, beta, forward_o
     %   the batch
 
     % e is a constant added to the mini-batch variance for numerical stability.
-    epsilon = 1e-4;
+    epsilon = eps; %1e-4;
 
     %compute the mean of the batch of Input 3D matrix;
     mu = mean(A(:));

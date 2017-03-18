@@ -1,4 +1,4 @@
-function [ y ] = myDiscriminator( net, x ,forward_or_backward , update )
+function [ y ] = myDiscriminator( net, x ,forward_or_backward , update , update_BN )
 %MYDISCRIMINATOR Summary of this function goes here
 %   The network of discriminator
 %   update is the flag for the net to judge wether to update weights in the
@@ -236,9 +236,11 @@ elseif strcmp(forward_or_backward,'backward')
             net.layers{i}.histdw = momentum * net.layers{i}.histdw + (1-momentum).*net.layers{i}.dw.^2;
             net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.histdw2)./(sqrt(net.layers{i}.histdw)+1.0e-8);
             
-            for j=1:net.layers{i}.outputMaps
-                net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1)-BN_lr.*net.layers{i}.dlamda(j,1);
-                net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1)-BN_lr.*net.layers{i}.dbeta(j,1);
+            if strcmp(update_BN,'true')
+                for j=1:net.layers{i}.outputMaps
+                    net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1)-BN_lr.*net.layers{i}.dlamda(j,1);
+                    net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1)-BN_lr.*net.layers{i}.dbeta(j,1);
+                end
             end
         end
         fprintf('finished a gradient calculate procedure in discriminator %s\n',datestr(now,13)); 
