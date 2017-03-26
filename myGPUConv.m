@@ -90,7 +90,7 @@ function target = myGPUConv(kConv, data, kernel, stride, task)
             paddingStart = 0; moduleStride = stride; imgStride = numImages; partialSum = numModulesX * numModulesY * numModulesZ;
             filterSize = imgSizeX - stride * (numModulesX - 1);
 
-            pixelsPerThread = 5; preLoadCases = 32; scaleOutput = 1;%./ (numImages * partialSum);
+            pixelsPerThread = 5; preLoadCases = 32; scaleOutput =1 ./ (numImages); %* partialSum
 
             kConv.ThreadBlockSize = [16, 8];
             kConv.GridSize = [numFilters*numModulesX*numModulesY*numModulesZ/partialSum/16, ceil(filterSize^3 /(8*pixelsPerThread))];
@@ -109,7 +109,7 @@ function target = myGPUConv(kConv, data, kernel, stride, task)
             filterSize = imgSizeX - stride * (numModulesX - 1);
 
             preLoadCases = 32; filtersPerThread = 2; colorsPerThread = 8;
-            scaleOutput = 1; numGroups = 1;
+            scaleOutput = 1 ./ (numImages); numGroups = 1;
 
             kConv.ThreadBlockSize = [16, 8];
             kConv.GridSize = [numFilters*numModulesX*numModulesY*numModulesZ/partialSum/16/filtersPerThread, ceil(filterSize^3 / 8) * (numColors / colorsPerThread)];
@@ -128,7 +128,7 @@ function target = myGPUConv(kConv, data, kernel, stride, task)
             filterSize = imgSizeX - stride * (numModulesX - 1);
 
             preLoadCases = 32; filtersPerThread = 1; colorsPerThread = 8;
-            scaleOutput = 1; numGroups = 1;
+            scaleOutput = 1 ./ (numImages); numGroups = 1;
 
             kConv.ThreadBlockSize = [1, 8];
             kConv.GridSize = [numFilters/filtersPerThread, ceil(filterSize^3 / 8) * (numColors / colorsPerThread)];
@@ -172,7 +172,9 @@ function target = myGPUConv(kConv, data, kernel, stride, task)
             paddingStart = 0; numGroups = 1;
 
             colorsPerThread = 4; imgsPerThread = 1;
-
+            
+%             kConv.ThreadBlockSize = [32, 4];
+%             kConv.GridSize = [ceil(numImages/(imgsPerThread * 32)) * (numColors / (4 * colorsPerThread)), imgSizeZ * imgSizeY * imgSizeX];
             kConv.ThreadBlockSize = [32, 16];
             kConv.GridSize = [ceil(numImages/(imgsPerThread * 32)) * numColors, imgSizeZ * ceil(imgSizeY/4) * ceil(imgSizeX/4)];
 

@@ -463,8 +463,8 @@ end
 
 %% test kConv_backward_my
 if 1
-    data=randi([1,10],2,5,5,5,16,'single');
-    kernel=randi([1,10],16,4,4,4,32,'single');
+    data=randi([1,10],50,1,1,1,256,'single');
+    kernel=randi([1,10],256,4,4,4,512,'single');
     stride=1;
     numColors=size(kernel,5);
     kConv=kConv_backward_my;

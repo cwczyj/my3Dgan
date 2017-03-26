@@ -1,4 +1,4 @@
-function [ y ] = myDiscriminator( net, x ,forward_or_backward , update , update_BN )
+function [ y ] = myDiscriminator( net, x ,forward_or_backward , update , train_or_test )
 %MYDISCRIMINATOR Summary of this function goes here
 %   The network of discriminator
 %   update is the flag for the net to judge wether to update weights in the
@@ -15,7 +15,7 @@ if strcmp(forward_or_backward,'forward')
     batch_size = size(x,1);
     net.layers{1}.layerSize = size(x,2);
     net.layers{1}.input = x;
-    batchSizeForCompute = 50;
+    batchSizeForCompute = 100;
     
     for i=1:numel(net.layers)
         if strcmp(net.layers{i}.type,'fullconnect')
@@ -73,14 +73,19 @@ if strcmp(forward_or_backward,'forward')
                 net.layers{i}.ReLUout = zeros(size(net.layers{i}.ReLUin),'single');
                 net.layers{i + 1}.input = zeros(size(net.layers{i}.ReLUout),'single');
                 for j = 1:net.layers{i}.outputMaps
-                
-                    net.layers{i}.ReLUout(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-                        net.layers{i}.beta(j,1),'forward',0);
+                    if strcmp(train_or_test,'train')
+                        [net.layers{i}.ReLUout(:,:,:,:,j),tmp_mean_mu, tmp_mean_sigma2 ]...
+                            = my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+                            net.layers{i}.beta(j,1),'forward',0,train_or_test,0,0);
+                        
+                        net.layers{i}.mean_mu(j,1) = net.layers{i}.mean_mu(j,1) + tmp_mean_mu;
+                        net.layers{i}.mean_sigma2(j,1) = net.layers{i}.mean_sigma2(j,1) + tmp_mean_sigma2;
+                    elseif strcmp(train_or_test,'test')
+                        net.layers{i}.ReLUout(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+                            net.layers{i}.beta(j,1),'forward',0,train_or_test,net.layers{i}.mean_mu(j,1),net.layers{i}.mean_sigma2(j,1));
+                    end
                     net.layers{i+1}.input(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUout(:,:,:,:,j),lReLU_rate,'forward',0);
-%                     net.layers{i}.ReLUout(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUin(:,:,:,:,j),lReLU_rate,'forward',0);
-%                     net.layers{i+1}.input(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-%                         net.layers{i}.beta(j,1),'forward',0);
-                end
+                end 
             else
                 net.layers{i+1}.input = net.layers{i}.ReLUin;
             end
@@ -96,7 +101,7 @@ elseif strcmp(forward_or_backward,'backward')
     
     lReLU_rate = net.LeakyReLU;
     batch_size = size(x,1);
-    batchSizeForCompute = 50;
+    batchSizeForCompute = 100;
     
     for i = numel(net.layers):-1:1
         if strcmp(net.layers{i}.type,'fullconnect')
@@ -109,9 +114,15 @@ elseif strcmp(forward_or_backward,'backward')
                 for j=1:net.layers{i}.outputMaps
                     net.layers{i}.dBN(:,:,:,:,j) = myLeakyReLU(net.layers{i}.ReLUout(:,:,:,:,j),lReLU_rate,'backward',net.layers{i+1}.dinput(:,:,:,:,j));
                     
-                    [net.layers{i}.dReLU(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
-                        my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-                        net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j));
+                    if strcmp(train_or_test,'train')
+                        [net.layers{i}.dReLU(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
+                            my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+                            net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j),train_or_test,0,0);
+                    elseif strcmp(train_or_test,'test')
+                        net.layers{i}.dReLU(:,:,:,:,j) = my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
+                            net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j),...
+                            train_or_test,net.layers{i}.mean_mu(j,1),net.layers{i}.mean_sigma2(j,1));
+                    end
 
 %                     [net.layers{i}.dBN(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
 %                         my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
@@ -232,15 +243,13 @@ elseif strcmp(forward_or_backward,'backward')
         BN_lr = net.BNlr;
         for i=1:(numel(net.layers)-1)
             %ascending the discriminator loss
-            net.layers{i}.histdw2 = momentum2 * net.layers{i}.histdw2 + (1-momentum2).*net.layers{i}.dw;
+            %net.layers{i}.histdw2 = momentum2 * net.layers{i}.histdw2 + (1-momentum2).*net.layers{i}.dw;
             net.layers{i}.histdw = momentum * net.layers{i}.histdw + (1-momentum).*net.layers{i}.dw.^2;
-            net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.histdw2)./(sqrt(net.layers{i}.histdw)+1.0e-8);
+            net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.dw)./(sqrt(net.layers{i}.histdw)+1.0e-8);
             
-            if strcmp(update_BN,'true')
-                for j=1:net.layers{i}.outputMaps
-                    net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1)-BN_lr.*net.layers{i}.dlamda(j,1);
-                    net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1)-BN_lr.*net.layers{i}.dbeta(j,1);
-                end
+            for j=1:net.layers{i}.outputMaps
+                net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1)-BN_lr.*net.layers{i}.dlamda(j,1);
+                net.layers{i}.beta(j,1) = net.layers{i}.beta(j,1)-BN_lr.*net.layers{i}.dbeta(j,1);
             end
         end
         fprintf('finished a gradient calculate procedure in discriminator %s\n',datestr(now,13)); 

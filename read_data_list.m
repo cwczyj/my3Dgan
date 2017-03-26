@@ -14,7 +14,7 @@ if debug
     maxNum = 20;
 elseif strcmp(train_or_test, 'train')
     %the maximum number of voxel in trainning data is 891
-    maxNum = 90*10; 
+    maxNum = 50*10; 
 else
     maxNum = 20*12;
 end

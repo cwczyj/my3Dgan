@@ -35,8 +35,9 @@ function [ net ] = myNetSetup4Discriminator( net , fanin)
         net.layers{i}.dlamda = zeros([net.layers{i}.outputMaps,1],'single');
         net.layers{i}.dbeta = zeros([net.layers{i}.outputMaps,1],'single');
         
-        net.layers{i}.histdlamda = zeros([net.layers{i}.outputMaps,1],'single');
-        net.layers{i}.histdbeta = zeros([net.layers{i}.outputMaps,1],'single');
+        net.layers{i}.mean_mu = zeros([net.layers{i}.outputMaps,1],'single');
+        net.layers{i}.mean_sigma2 = zeros([net.layers{i}.outputMaps,1],'single');
+        
         
         fan_in = net.layers{i}.outputMaps;
     end

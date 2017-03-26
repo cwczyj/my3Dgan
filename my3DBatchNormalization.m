@@ -1,19 +1,26 @@
-function [output,dlamda,dbeta]= my3DBatchNormalization(A, lamda, beta, forward_or_backward,Loss)
+function [output,dlamda,dbeta]= my3DBatchNormalization(A, lamda, beta, forward_or_backward,Loss,train_or_test,mean_mu,mean_sigma2)
     %MY3DBATCHNORMALIZATION Summary of this function goes here
     %   A Batch Normalization function for 3D voxel grid
     %   'A' is a 4-D matrix,the 1th dimension of the matrix is the number of
     %   the batch
 
     % e is a constant added to the mini-batch variance for numerical stability.
-    epsilon = eps; %1e-4;
+    epsilon = 1e-10;
+    
+    if strcmp(train_or_test,'train')
+        %compute the mean of the batch of Input 3D matrix;
+        mu = mean(A(:));
 
-    %compute the mean of the batch of Input 3D matrix;
-    mu = mean(A(:));
-
-    %compute the variance of the batch of Input 3D matrix;
-    x_mu = bsxfun(@minus,A,mu);
-    tmp = x_mu.^2;
-    x_sigma2 = mean(tmp(:));
+        %compute the variance of the batch of Input 3D matrix;
+        x_mu = bsxfun(@minus,A,mu);
+        tmp = x_mu.^2;
+        x_sigma2 = mean(tmp(:));
+    elseif strcmp(train_or_test,'test')
+        mu = mean_mu;
+        x_mu = bsxfun(@minus,A,mu);
+        x_sigma2 = mean_sigma2;
+    end
+        
     norm_factor = lamda./sqrt(x_sigma2+epsilon);
 
     %nomalize the data of the batch of the input 3D matix;
@@ -23,8 +30,8 @@ function [output,dlamda,dbeta]= my3DBatchNormalization(A, lamda, beta, forward_o
     %compute the output of the Batch Normalization layer;output is a 4-D
     %matrix;
         output = bsxfun(@plus,x_hat,beta-norm_factor.*mu);
-        dlamda=0;
-        dbeta=0;
+        dlamda=mu;
+        dbeta=x_sigma2;
     elseif strcmp(forward_or_backward,'backward')
         %Loss and dx_star is a 4 dimensional Matrix;
         d_hat = bsxfun(@times,Loss,lamda);
