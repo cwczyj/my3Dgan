@@ -15,32 +15,12 @@ global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c 
         net.layers{1}.input = x;
         net.layers{1}.layerSize=1;
         net.layers{2}.layerSize = 4;
-        batchSizeForCompute = 50;
+        batchSizeForCompute = 100;
         
         for i = 1:numel(net.layers)
 
             if strcmp(net.layers{i}.type,'fullconnect')
-                net.layers{i+1}.input=zeros([batch_size,net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,...
-                    net.layers{i+1}.layerSize,net.layers{i}.outputMaps],'single');
-                net.layers{i}.ReLUin=zeros([batch_size,net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,...
-                    net.layers{i+1}.layerSize,net.layers{i}.outputMaps],'single');
-                net.layers{i}.ReLUout=zeros([batch_size,net.layers{i+1}.layerSize,net.layers{i+1}.layerSize,...
-                    net.layers{i+1}.layerSize,net.layers{i}.outputMaps],'single');
-                
-                for j=1:net.layers{i}.outputMaps
-                    z=zeros([batch_size,net.layers{i}.kernels^3],'single');
-                    z=z+net.layers{i}.input*net.layers{i}.w(:,:,j);
-                    
-                    net.layers{i}.ReLUin(:,:,:,:,j) = reshape(z,batch_size,net.layers{i}.kernels,...
-                        net.layers{i}.kernels,net.layers{i}.kernels);
-                    
-                    net.layers{i}.ReLUout(:,:,:,:,j) = my3DBatchNormalization...
-                        (net.layers{i}.ReLUin(:,:,:,:,j), net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1), 'forward',0,'train',0,0);
-                    net.layers{i+1}.input(:,:,:,:,j) = myReLU(net.layers{i}.ReLUout(:,:,:,:,j), 'forward', 0);
-%                     net.layers{i}.ReLUout(:,:,:,:,j) = myReLU(net.layers{i}.ReLUin(:,:,:,:,j), 'forward', 0);
-%                     net.layers{i+1}.input(:,:,:,:,j) = my3DBatchNormalization...
-%                         (net.layers{i}.ReLUout(:,:,:,:,j), net.layers{i}.lamda(j,1), net.layers{i}.beta(j,1), 'forward',0);
-                end
+                %no full connection
             elseif strcmp(net.layers{i}.type,'convolution')
                 net.layers{i+1}.layerSize=(net.layers{i}.layerSize-1)*(net.layers{i}.stride-1)+...
                     net.layers{i}.layerSize+net.layers{i}.kernels-1-2*net.layers{i}.padding;
@@ -101,15 +81,15 @@ global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c 
                         net.layers{i+1}.layerSize,net.layers{i}.outputMaps],'single');
 
                     for j=1:net.layers{i}.outputMaps
-%                         net.layers{i}.ReLUout(:,:,:,:,j)=myReLU(net.layers{i}.ReLUin(:,:,:,:,j),'forward',0);
-%                         net.layers{i+1}.input(:,:,:,:,j)=my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),...
-%                             net.layers{i}.lamda(j,1),net.layers{i}.beta(j,1),'forward',0);
+                        net.layers{i}.ReLUin(:,:,:,:,j) = net.layers{i}.ReLUin(:,:,:,:,j) + net.layers{i}.b(j,1);
                         net.layers{i}.ReLUout(:,:,:,:,j)=my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),...
-                            net.layers{i}.lamda(j,1),net.layers{i}.beta(j,1),'forward',0,'train',0,0);
+                            net.layers{i}.lamda(j,1),net.layers{i}.beta(j,1),'forward',0);
                         net.layers{i+1}.input(:,:,:,:,j)=myReLU(net.layers{i}.ReLUout(:,:,:,:,j),'forward',0);
                     end
                 else
-                    net.layers{i+1}.input = net.layers{i}.ReLUin;
+                    for j=1:net.layers{i}.outputMaps
+                        net.layers{i+1}.input(:,:,:,:,j) = net.layers{i}.ReLUin(:,:,:,:,j) + net.layers{i}.b(j,1);
+                    end
                 end
                                        
             elseif strcmp(net.layers{i}.type,'output')
@@ -125,38 +105,21 @@ global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c 
         %% for Generator bp
         
         batch_size=size(x,1);
-        batchSizeForCompute = 50;
+        batchSizeForCompute = 100;
         for i=numel(net.layers):-1:1
             if strcmp(net.layers{i}.type,'fullconnect')
-                for j=1:net.layers{i}.outputMaps
-                    net.layers{i}.dBN(:,:,:,:,j) = zeros(size(net.layers{i+1}.dinput(:,:,:,:,j)),'single');
-                    net.layers{i}.dBN(:,:,:,:,j) = myReLU(net.layers{i}.ReLUout(:,:,:,:,j),'backward',net.layers{i+1}.dinput(:,:,:,:,j));
-
-                    [net.layers{i}.dReLU(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
-                        my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-                        net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j),'train',0,0);
-
-                    tmp = reshape(net.layers{i}.dReLU(:,:,:,:,j),size(net.layers{i}.dReLU(:,:,:,:,j),1),...
-                        net.layers{i}.kernels^3);
-                    net.layers{i}.dw(:,:,j) = net.layers{i}.input' * tmp;
-                end
-            elseif strcmp(net.layers{i}.type,'convolution')
-                %   compute dx
+                % no full connection
+            elseif strcmp(net.layers{i}.type,'convolution')                
                 if net.layers{i}.outputMaps ~= 1
                     net.layers{i}.dBN = zeros(size(net.layers{i+1}.dinput),'single');
                     net.layers{i}.dReLU = zeros(size(net.layers{i+1}.dinput),'single');
 
                     for j=1:net.layers{i}.outputMaps
-%                         [net.layers{i}.dBN(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)] = ...
-%                             my3DBatchNormalization(net.layers{i}.ReLUout(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-%                              net.layers{i}.beta(j,1),'backward',net.layers{i+1}.dinput(:,:,:,:,j));
-%                          
-%                          net.layers{i}.dReLU(:,:,:,:,j) = myReLU(net.layers{i}.ReLUin(:,:,:,:,j),'backward',net.layers{i}.dBN(:,:,:,:,j));
                         net.layers{i}.dBN(:,:,:,:,j) = myReLU(net.layers{i}.ReLUout(:,:,:,:,j),'backward',net.layers{i+1}.dinput(:,:,:,:,j));
 
                         [net.layers{i}.dReLU(:,:,:,:,j),net.layers{i}.dlamda(j,1),net.layers{i}.dbeta(j,1)]=...
                             my3DBatchNormalization(net.layers{i}.ReLUin(:,:,:,:,j),net.layers{i}.lamda(j,1),...
-                            net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j),'train',0,0);
+                            net.layers{i}.beta(j,1),'backward',net.layers{i}.dBN(:,:,:,:,j));
 
                     end
                 else
@@ -173,6 +136,7 @@ global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c 
                     tmp = net.layers{i}.dReLU;
                 end
                 
+                %   compute dx
                 net.layers{i}.dinput = zeros(batch_size,net.layers{i}.layerSize,net.layers{i}.layerSize,net.layers{i}.layerSize,...
                     size(net.layers{i}.input,5),'single');
                 
@@ -211,7 +175,11 @@ global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c 
                     net.layers{i}.dinput = myGPUConv(kConv,tmp,net.layers{i}.w,net.layers{i}.stride,'forward');
                 end
                 
-                %fprintf('finish %dth bp layer for dx in generator at %s\n',i,datestr(now,13));
+                % compute db
+                for j=1:net.layers{i}.outputMaps
+                    tmp_sumb = net.layers{i}.dReLU(:,:,:,:,j);
+                    net.layers{i}.db(j,1) = sum(tmp_sumb(:))/batch_size ;
+                end
                 
                 % compute dw
                 if i ~= 1
@@ -219,12 +187,13 @@ global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c 
                         net.layers{i+1}.layerSize+ 2 * net.layers{i+1}.padding,...
                         net.layers{i+1}.layerSize+ 2 * net.layers{i+1}.padding,size(net.layers{i+1}.dinput,5)],'single');
                     tmp(:,1+net.layers{i+1}.padding:end-net.layers{i+1}.padding,1+net.layers{i+1}.padding:end-net.layers{i+1}.padding,...
-                        1+net.layers{i+1}.padding:end-net.layers{i+1}.padding,:) = net.layers{i+1}.dinput;
+                        1+net.layers{i+1}.padding:end-net.layers{i+1}.padding,:) = net.layers{i}.dReLU;
                 else
-                    tmp = net.layers{i+1}.dinput;
+                    tmp = net.layers{i}.dReLU;
                 end
                 
                 net.layers{i}.dw=net.layers{i}.dw.*0;
+                
                 if size(net.layers{i + 1}.dinput,5) == 1
                     kConv_w = kConv_weight;
                 else
@@ -263,11 +232,8 @@ global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c 
                 end
             elseif strcmp(net.layers{i}.type,'output')
                 net.layers{i}.dinput = zeros(size(net.layers{i}.input),'single');
-                x=reshape(x,size(net.layers{i}.input));
                 net.layers{i}.dinput = mySigmoidFun(net.layers{i}.input,'backward',x);
             end
-            
-            %fprintf('finished %dth bp layer in generator %s\n',i,datestr(now,13));
         end
         
         %ascending the discriminator loss
@@ -278,9 +244,13 @@ global kConv_backward kConv_forward kConv_forward_c kConv_weight kConv_weight_c 
         for i=1:(numel(net.layers)-1)
 %              net.layers{i}.histdw = momentum * net.layers{i}.histdw + (1-momentum).*net.layers{i}.dw.^2;
 %              net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.dw)./(sqrt(net.layers{i}.histdw)+1.0e-8);
-            %net.layers{i}.histdw2 = momentum2 * net.layers{i}.histdw2 + (1-momentum2).*net.layers{i}.dw;
-            net.layers{i}.histdw = momentum * net.layers{i}.histdw + (1-momentum).*net.layers{i}.dw.^2;
-            net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.dw)./(sqrt(net.layers{i}.histdw)+1.0e-8);
+            net.layers{i}.histdw2 = momentum2 * net.layers{i}.histdw2 + (1-momentum2).*net.layers{i}.dw;
+            net.layers{i}.histdw = momentum * net.layers{i}.histdw + (1-momentum).*(net.layers{i}.dw.^2);
+            net.layers{i}.w = net.layers{i}.w - lr.*(net.layers{i}.histdw2)./(sqrt(net.layers{i}.histdw)+1.0e-8);
+            
+            net.layers{i}.histdb2 = momentum2 * net.layers{i}.histdb2 + (1-momentum2).*net.layers{i}.db;
+            net.layers{i}.histdb = momentum * net.layers{i}.histdb + (1-momentum).*(net.layers{i}.db.^2);
+            net.layers{i}.b = net.layers{i}.b - lr.*(net.layers{i}.histdb2)./(sqrt(net.layers{i}.histdb)+1.0e-8);
             
             for j=1:net.layers{i}.outputMaps
                 net.layers{i}.lamda(j,1) = net.layers{i}.lamda(j,1)-BN_lr.*net.layers{i}.dlamda(j,1);

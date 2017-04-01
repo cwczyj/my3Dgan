@@ -7,7 +7,7 @@ function [ output ] = mySigmoidFun( A , forward_or_backward,Loss)
         output=sigmoid(A);
     elseif strcmp(forward_or_backward,'backward')
         tmp=sigmoid(A);
-        output=Loss.*(tmp.*(1-tmp));
+        output=(tmp.*(1-tmp)).*Loss;
     end
 
     function out=sigmoid(X)
